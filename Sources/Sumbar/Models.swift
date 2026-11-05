@@ -66,6 +66,7 @@ struct CBURecord: Decodable, Sendable {
 }
 struct CacheState: Codable {
     var currencies: [CurrencyQuote] = []
+    var bankQuotes: [BankQuote]?
     var instruments: [Instrument] = []
     var observed: [String: [PricePoint]] = [:]
     var currencyHistory: [String: [PricePoint]] = [:]

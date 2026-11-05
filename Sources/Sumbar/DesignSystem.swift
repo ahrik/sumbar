@@ -96,7 +96,8 @@ struct PanelTabs: View {
     var body: some View {
         HStack(spacing: 4) {
             tab("Валюты", icon: "arrow.left.arrow.right", tag: 0, shortcut: "1")
-            tab("Ценные бумаги", icon: "chart.line.uptrend.xyaxis", tag: 1, shortcut: "2")
+            tab("Банки", icon: "building.columns", tag: 1, shortcut: "2")
+            tab("Ценные бумаги", icon: "chart.line.uptrend.xyaxis", tag: 2, shortcut: "3")
         }.padding(5).modifier(ControlGlass())
             .accessibilityElement(children: .contain).accessibilityLabel("Разделы приложения")
     }

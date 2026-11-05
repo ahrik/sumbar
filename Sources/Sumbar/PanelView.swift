@@ -25,11 +25,12 @@ struct PanelView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            if tab != 2 { PanelTabs(selection: $tab).padding(.horizontal, 22).padding(.bottom, 14) }
+            if tab != 3 { PanelTabs(selection: $tab).padding(.horizontal, 22).padding(.bottom, 14) }
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     if tab == 0 { currencies }
-                    else if tab == 1 { securities }
+                    else if tab == 1 { BankComparisonView(store: store) }
+                    else if tab == 2 { securities }
                     else { settings }
                 }.padding(.horizontal, 22).padding(.top, 8).padding(.bottom, 22)
             }.scrollIndicators(.hidden)
@@ -43,9 +44,12 @@ struct PanelView: View {
         .tint(SumbarDesign.blue).preferredColorScheme(theme)
         .task { if !isDesignPreview { await store.loadCurrencyHistory() } }
     }
-    private var checked: Date? { tab == 1 ? store.cache.stocksChecked : store.cache.fxChecked }
+    private var checked: Date? {
+        if tab == 1 { return store.cache.bankQuotes?.map(\.observedAt).max() }
+        return tab == 2 ? store.cache.stocksChecked : store.cache.fxChecked
+    }
     private var isStale: Bool {
-        let error = tab == 1 ? store.stocksError : store.fxError
+        let error = tab == 1 ? (store.bankErrors.isEmpty ? nil : "Ошибка источника") : tab == 2 ? store.stocksError : store.fxError
         return error != nil || checked == nil || Date().timeIntervalSince(checked!) > Double(store.refreshMinutes * 120)
     }
     private var header: some View {
@@ -55,11 +59,11 @@ struct PanelView: View {
                 Image(systemName: "chart.xyaxis.line").font(.system(size: 21, weight: .semibold)).foregroundStyle(SumbarDesign.blue)
             }.frame(width: 42, height: 42).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
-                Text(tab == 2 ? "Настройки" : "Sumbar").font(.system(size: 19, weight: .semibold))
-                Text(isDesignPreview ? "Демонстрационные данные" : tab == 2 ? "Ваше пространство финансов" : "Узбекистан в цифрах").font(.system(size: 11)).foregroundStyle(.secondary)
+                Text(tab == 3 ? "Настройки" : "Sumbar").font(.system(size: 19, weight: .semibold))
+                Text(isDesignPreview ? "Демонстрационные данные" : tab == 3 ? "Ваше пространство финансов" : "Узбекистан в цифрах").font(.system(size: 11)).foregroundStyle(.secondary)
             }
             Spacer()
-            if tab == 2 {
+            if tab == 3 {
                 Button("Готово") { tab = 0 }.buttonStyle(.bordered).controlSize(.small)
             } else {
                 Button { Task { await store.refresh() } } label: {
@@ -67,7 +71,7 @@ struct PanelView: View {
                     else { Image(systemName: "arrow.clockwise") }
                 }.buttonStyle(QuietIconButton()).disabled(store.loading).help("Обновить данные · ⌘R")
                     .accessibilityLabel("Обновить данные").keyboardShortcut("r", modifiers: .command)
-                Button { tab = 2 } label: { Image(systemName: "slider.horizontal.3") }
+                Button { tab = 3 } label: { Image(systemName: "slider.horizontal.3") }
                     .buttonStyle(QuietIconButton()).help("Настройки · ⌘,")
                     .accessibilityLabel("Настройки").keyboardShortcut(",", modifiers: .command)
             }
@@ -95,13 +99,10 @@ struct PanelView: View {
                 currencyHero(q)
                 currencyChart
                 converter(q)
-                DisclosureGroup {
-                    VStack(alignment: .leading, spacing: 9) {
-                        Text("Покупка и продажа банков пока не подключены. Для обмена сверяйте цену и комиссии банка.")
-                            .font(.system(size: 12)).foregroundStyle(.secondary)
-                        Link("Курсы Ipak Yuli Bank", destination: URL(string: "https://ru.ipakyulibank.uz/physical/obmen-valyut")!)
-                    }.padding(.top, 10)
-                } label: { Label("Курсы банков", systemImage: "building.columns").font(.system(size: 12, weight: .medium)) }
+                Button { tab = 1 } label: {
+                    HStack { Label("Сравнить курсы банков", systemImage: "building.columns"); Spacer(); Image(systemName: "chevron.right") }
+                        .font(.system(size: 12, weight: .medium)).padding(.vertical, 8).contentShape(Rectangle())
+                }.buttonStyle(.plain)
                 sourceLink("Центральный банк Узбекистана", url: "https://cbu.uz/ru/arkhiv-kursov-valyut/")
             } else {
                 empty("Ваш валютный обзор", detail: "Курсы появятся после первой успешной проверки.", icon: "arrow.left.arrow.right")

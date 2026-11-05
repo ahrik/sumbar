@@ -24,6 +24,11 @@ import SwiftUI
         let prices: [Decimal] = [540, 548, 543, 560, 552, 568, 565, 575, 570, 582, 578, 589]
         let points = prices.enumerated().map { index, price in PricePoint(date: Dates.calendar.date(byAdding: .day, value: index * 2 - 24, to: now)!, price: price) }
         store.cache.details[instrument.id] = SecurityDetail(history: points, coupon: nil, faceValue: nil)
+        store.cache.bankQuotes = [
+            BankQuote(bankID: "demo-a", bankName: "Пример банка A", currency: "USD", channel: .cash, buy: 12490, sell: 12550, provider: "ipak", sourceURL: BankProviders.sources[0].url, publishedAt: now, observedAt: now),
+            BankQuote(bankID: "demo-b", bankName: "Пример банка B", currency: "USD", channel: .cash, buy: 12500, sell: 12570, provider: "kapital", sourceURL: BankProviders.sources[1].url, publishedAt: now, observedAt: now),
+            BankQuote(bankID: "demo-c", bankName: "Пример банка C", currency: "USD", channel: .cash, buy: 12480, sell: 12590, provider: "bankuz", sourceURL: BankProviders.sources[2].url, publishedAt: nil, observedAt: now)
+        ]
         return store
     }
     static func render(to directory: URL) throws {
@@ -31,8 +36,9 @@ import SwiftUI
         for (name, tab, dark, reduced, height) in [
             ("currencies-dark", 0, true, false, CGFloat(760)),
             ("currencies-light", 0, false, false, CGFloat(760)),
-            ("securities-dark", 1, true, false, CGFloat(760)),
-            ("settings-dark", 2, true, false, CGFloat(760)),
+            ("banks-dark", 1, true, false, CGFloat(760)),
+            ("securities-dark", 2, true, false, CGFloat(760)),
+            ("settings-dark", 3, true, false, CGFloat(760)),
             ("compact-accessible", 0, true, true, CGFloat(610))
         ] {
             let root = PanelView(store: fixture(), panelHeight: height, isDesignPreview: true, tab: tab, period: "7 дней")

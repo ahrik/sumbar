@@ -3,6 +3,8 @@ import SwiftUI
 @MainActor @Observable final class MarketStore {
     var cache = CacheState()
     var fxError: String?; var stocksError: String?; var chartError: String?
+    var bankErrors: [String: String] = [:]
+    var loadingBanks = false
     var loading = false; var loadingChart = false
     var refreshMinutes: Int { didSet { UserDefaults.standard.set(refreshMinutes, forKey: "refreshMinutes") } }
     var selectedCurrency: String { didSet { UserDefaults.standard.set(selectedCurrency, forKey: "currency") } }
@@ -42,7 +44,28 @@ import SwiftUI
         guard !loading else { return }; loading = true; lastAttempt = Date(); defer { loading = false; save() }
         async let fx: Void = refreshFX()
         async let securities: Void = refreshStocks()
-        _ = await (fx, securities)
+        async let banks: Void = refreshBanks()
+        _ = await (fx, securities, banks)
+    }
+    func refreshBanks() async {
+        guard !loadingBanks else { return }; loadingBanks = true
+        defer { loadingBanks = false; save() }
+        await withTaskGroup(of: (String, [BankQuote]?, String?).self) { group in
+            for source in BankProviders.sources {
+                group.addTask {
+                    do { return (source.id, try await BankProviders.load(source), nil) }
+                    catch { return (source.id, nil, error.localizedDescription) }
+                }
+            }
+            for await (provider, quotes, error) in group {
+                if let quotes {
+                    var current = cache.bankQuotes ?? []
+                    current.removeAll { $0.provider == provider }
+                    current.append(contentsOf: quotes); cache.bankQuotes = current
+                    bankErrors.removeValue(forKey: provider)
+                } else { bankErrors[provider] = error ?? "Нет данных" }
+            }
+        }
     }
     private func refreshFX() async {
         do {

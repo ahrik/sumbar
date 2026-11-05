@@ -19,12 +19,22 @@ The build script creates an application for the build machine's architecture and
 ## Implemented
 
 - An adaptive native popover anchored to the menu bar, light/dark/system appearance, glass navigation on macOS 26+ and standard material fallback on macOS 14/15.
+- Commercial bank comparison: direct Ipak Yuli Bank and Kapitalbank rates plus exchange-office offers from Bank.uz. Customer buy/sell direction, channel filters, totals and differences, per-row sources and publication/check times.
 - Official CBU rates, all published currencies, correct normalization by `Nominal`, effective dates, seven-day publication history.
 - Intraday FX observations saved during successful checks. This is an observation chart, not a trading feed. A single observation is displayed as a point. A constant CBU rate remains flat, never simulated.
-- Automatic checks every 15/30/60 minutes while running, explicit refresh, wake refresh, independent currency/security failure messages.
+- Automatic checks every 15/30/60 minutes while running, explicit refresh, wake refresh, independent currency/security/bank provider failure messages.
 - UZSE stocks and bonds via the public Finmind API, per-instrument trade dates, daily closing-price history, ticker/company search.
 - Currency conversion and securities calculator using Decimal: whole quantities, buy/sell scenario, a separately applied commission on both sides, return percentage; annual coupon per bond when nominal and coupon are provided.
 - Local cache and settings, source attribution, actual successful-check timestamps. Failed requests preserve cached values and display an error.
+
+## Validation
+
+```sh
+swift test
+SUMBAR_LIVE_TESTS=1 swift test
+```
+
+The opt-in command checks the real CBU, securities and all three bank sources. Normal tests use synthetic fixtures. Never commit downloaded page snapshots from `work/`.
 
 ## Interface
 
@@ -38,17 +48,17 @@ UZSE data is read directly by the client from <https://finmind.uz/developers>. F
 
 Finmind permits personal use/research and requires written permission for bulk download, resale or redistribution. The app retrieves a catalogue and only the chosen instrument's detail for personal viewing. Do not publish the cache, ship cached quotes in releases, or proxy/redistribute market data without the relevant permission. MIT applies to the code, not market data. No actual quotes are checked into this repository.
 
-**Bank buy/sell rates are not connected yet.** The panel states this and links to the bank's source page. A tested NBU endpoint did not respond during development. CBU rates are never presented as a commercial bank's executable prices. Completing multi-bank comparison requires verified bank endpoints and permitted use; a future bank adapter should record currency, channel, buy/sell, effective time, observed time and source independently.
+Bank rates are fetched from the official public Ipak Yuli Bank and Kapitalbank pages and the Bank.uz exchange-office comparison page. See [BANK_SOURCES.md](BANK_SOURCES.md) for field mappings, coverage and freshness rules. Missing sides remain unknown. Direct bank data takes priority over aggregated data for the same bank/currency/channel; a failed or expired direct source can fall back to a current aggregate quote. These are indicative prices, not executable offers; fees, cash availability, branch differences and limits are not included.
 
 The securities calculator estimates a scenario, not an order. It omits taxes, dividends, accrued coupon and market liquidity; the coupon figure is not yield to maturity. This application does not place trades or access bank accounts.
 
 ## Local storage
 
-`~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings use macOS UserDefaults. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU and Finmind.
+`~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings use macOS UserDefaults. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU, Finmind, Ipak Yuli Bank, Kapitalbank and Bank.uz. Bank snapshots share the local cache; older cache files without bank data remain readable.
 
 ## Next work
 
-1. Verified commercial bank providers and channel-specific exchange comparison.
+1. Additional direct bank providers, branch-specific offers and bank quote history.
 2. Licensed UZSE intraday feed, preserving actual trade timestamps and gaps.
 3. Provider-specific Retry-After handling, conditional HTTP requests and additional integration tests.
 4. Alert rules, favourites, Uzbek localization, accessibility audit, signed/notarized universal releases.

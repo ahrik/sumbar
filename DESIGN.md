@@ -13,8 +13,9 @@ A compact native financial instrument for the macOS menu bar. Let the current qu
 ## Layout and typography
 
 - 520-point popover, up to 760 points tall. Height is capped by the available display space. The body scrolls, keeping navigation and status accessible.
-- Header with a restrained brand mark, refresh and settings. Two main tabs; settings is a separate view with a Done action.
+- Header with a restrained brand mark, refresh and settings. Three main tabs (currencies, banks, securities); settings is a separate view with a Done action.
 - Currency quick selectors, a primary quote with units and effective date, history, converter, then provider details.
+- Bank comparison separates the customer’s operation from bank buy/sell prices, shows a common foreign-currency amount, and ranks only comparable channels. Quote sources and dates remain attached to each bank row.
 - Securities use the same hierarchy: instrument selection, current stored close, session date, chart and scenario calculator.
 - System SF for text; rounded system figures for the primary quote and calculations. Monospaced digits prevent number alignment jumps. Supporting labels are at least 11 points.
 
@@ -28,7 +29,7 @@ System appearance is the default. Users may choose Light or Dark in settings. Re
 
 ## Interaction
 
-- Command-1 / Command-2: currencies / securities.
+- Command-1 / Command-2 / Command-3: currencies / banks / securities.
 - Command-R: refresh; Command-comma: settings.
 - Chart selection reveals the nearest observed price and Tashkent timestamp.
 - Hover help and accessibility names identify icon-only actions.
