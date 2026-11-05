@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 project_dir="$(cd "$(dirname "$0")/.." && pwd)"
-output_dir="${1:-$project_dir/../outputs}"
+output_dir="${1:-$project_dir/outputs}"
 mkdir -p "$output_dir/Sumbar.app/Contents/MacOS"
 cd "$project_dir"
 swift build -c release

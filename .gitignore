@@ -1,5 +1,7 @@
+/.build/
+/.swiftpm/
 /outputs/
 /work/
-Sumbar/.build/
-Sumbar/.swiftpm/
 .DS_Store
+xcuserdata/
+*.xcuserstate

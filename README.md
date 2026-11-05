@@ -4,13 +4,12 @@ A native macOS menu bar application for Uzbekistan's currencies and securities. 
 
 ## Build and run
 
-Install Xcode (or an appropriate Swift toolchain with macOS SDK), then run:
+Install Xcode (or an appropriate Swift toolchain with macOS SDK). From the repository folder, run:
 
 ```sh
-cd Sumbar
 swift test
 bash scripts/build-app.sh
-open ../outputs/Sumbar.app
+open outputs/Sumbar.app
 ```
 
 Click the chart icon in the macOS menu bar. The application has no Dock icon. Click outside the panel to dismiss it; it continues checking data while running. Choose Quit in the panel to stop it. `Sumbar.app/Contents/MacOS/Sumbar --preview` opens the panel immediately for review.
@@ -52,7 +51,7 @@ The securities calculator estimates a scenario, not an order. It omits taxes, di
 
 ## Contributing
 
-Open `Package.swift` in Xcode. Keep provider parsing separate from SwiftUI; retain Decimal for money; include synthetic fixtures/tests for schema changes; never commit personal cache data. Validate with `swift test` and a release build. Submit small changes describing visible behavior and validation.
+Open the repository’s root `Package.swift` in Xcode. Build artifacts are written to `outputs/` and excluded from Git. Keep provider parsing separate from SwiftUI; retain Decimal for money; include synthetic fixtures/tests for schema changes; never commit personal cache data. Validate with `swift test` and a release build. Submit small changes describing visible behavior and validation.
 
 ## License
 
