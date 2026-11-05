@@ -1,0 +1,57 @@
+#if DEBUG
+import AppKit
+import SwiftUI
+
+/// Local visual QA only: synthetic values never reach providers or the disk cache.
+@MainActor enum DesignPreview {
+    static func fixture() -> MarketStore {
+        let store = MarketStore(inMemory: true)
+        let now = Date()
+        store.cache.fxChecked = now; store.cache.stocksChecked = now
+        store.cache.currencies = [
+            CurrencyQuote(code: "USD", name: "Доллар США", price: 12530, change: Decimal(string: "24.50")!, effectiveDate: Dates.formatter("dd.MM.yyyy").string(from: now)),
+            CurrencyQuote(code: "EUR", name: "Евро", price: 13690, change: -15, effectiveDate: Dates.day()),
+            CurrencyQuote(code: "RUB", name: "Российский рубль", price: 138, change: 1, effectiveDate: Dates.day()),
+            CurrencyQuote(code: "KZT", name: "Казахстанский тенге", price: Decimal(string: "25.34")!, change: 0, effectiveDate: Dates.day())
+        ]
+        let values: [Decimal] = [12450, 12420, 12480, 12460, 12500, Decimal(string: "12505.5")!, 12530]
+        store.cache.currencyHistory["USD"] = values.enumerated().map { index, value in
+            PricePoint(date: Dates.calendar.date(byAdding: .day, value: index - 6, to: now)!, price: value)
+        }
+        store.cache.observed["USD"] = (0...8).map { index in PricePoint(date: now.addingTimeInterval(Double(index - 8) * 900), price: 12530) }
+        let instrument = Instrument(key: "DEMO", ticker: "DEMO", name: "Пример акции", kind: "stock", currency: "UZS", price: 589, changePercent: Decimal(string: "2.43")!, tradeDate: Dates.day())
+        store.cache.instruments = [instrument]; store.selectedInstrumentID = instrument.id
+        let prices: [Decimal] = [540, 548, 543, 560, 552, 568, 565, 575, 570, 582, 578, 589]
+        let points = prices.enumerated().map { index, price in PricePoint(date: Dates.calendar.date(byAdding: .day, value: index * 2 - 24, to: now)!, price: price) }
+        store.cache.details[instrument.id] = SecurityDetail(history: points, coupon: nil, faceValue: nil)
+        return store
+    }
+    static func render(to directory: URL) throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for (name, tab, dark, reduced, height) in [
+            ("currencies-dark", 0, true, false, CGFloat(760)),
+            ("currencies-light", 0, false, false, CGFloat(760)),
+            ("securities-dark", 1, true, false, CGFloat(760)),
+            ("settings-dark", 2, true, false, CGFloat(760)),
+            ("compact-accessible", 0, true, true, CGFloat(610))
+        ] {
+            let root = PanelView(store: fixture(), panelHeight: height, isDesignPreview: true, tab: tab, period: "7 дней")
+                .environment(\.colorScheme, dark ? .dark : .light)
+                .environment(\.previewOpaqueMaterial, reduced)
+            let host = NSHostingView(rootView: root)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: height), styleMask: [.borderless], backing: .buffered, defer: false)
+            window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+            window.contentView = host
+            host.frame = NSRect(x: 0, y: 0, width: 520, height: height)
+            host.layoutSubtreeIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+            guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { throw MarketError.invalidData }
+            host.cacheDisplay(in: host.bounds, to: bitmap)
+            guard let png = bitmap.representation(using: .png, properties: [:]) else { throw MarketError.invalidData }
+            try png.write(to: directory.appendingPathComponent(name + ".png"))
+            window.contentView = nil
+        }
+        print("Rendered native design previews to \(directory.path)")
+    }
+}
+#endif

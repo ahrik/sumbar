@@ -18,13 +18,17 @@ The build script creates an application for the build machine's architecture and
 
 ## Implemented
 
-- A dark popover anchored to the menu bar, currency/security/settings tabs.
+- An adaptive native popover anchored to the menu bar, light/dark/system appearance, glass navigation on macOS 26+ and standard material fallback on macOS 14/15.
 - Official CBU rates, all published currencies, correct normalization by `Nominal`, effective dates, seven-day publication history.
 - Intraday FX observations saved during successful checks. This is an observation chart, not a trading feed. A single observation is displayed as a point. A constant CBU rate remains flat, never simulated.
 - Automatic checks every 15/30/60 minutes while running, explicit refresh, wake refresh, independent currency/security failure messages.
 - UZSE stocks and bonds via the public Finmind API, per-instrument trade dates, daily closing-price history, ticker/company search.
 - Currency conversion and securities calculator using Decimal: whole quantities, buy/sell scenario, a separately applied commission on both sides, return percentage; annual coupon per bond when nominal and coupon are provided.
 - Local cache and settings, source attribution, actual successful-check timestamps. Failed requests preserve cached values and display an error.
+
+## Interface
+
+The visual system, Apple references, keyboard shortcuts and local preview instructions are in [DESIGN.md](DESIGN.md).
 
 ## Data limitations and terms
 

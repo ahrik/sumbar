@@ -12,10 +12,10 @@ import SwiftUI
             button.image = NSImage(systemSymbolName: "chart.xyaxis.line", accessibilityDescription: "Sumbar — финансы Узбекистана")
             button.target = self; button.action = #selector(togglePanel)
         }
-        popover.contentSize = NSSize(width: 490, height: 740)
+        let height = min(CGFloat(760), (NSScreen.main?.visibleFrame.height ?? 820) - 40)
+        popover.contentSize = NSSize(width: 520, height: height)
         popover.behavior = .transient
-        popover.appearance = NSAppearance(named: .darkAqua)
-        popover.contentViewController = NSHostingController(rootView: PanelView(store: store))
+        popover.contentViewController = NSHostingController(rootView: PanelView(store: store, panelHeight: height))
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in await self?.store.refresh() }
         }
@@ -37,6 +37,13 @@ import SwiftUI
     @MainActor static func main() {
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
+        #if DEBUG
+        if let index = CommandLine.arguments.firstIndex(of: "--render-design"), CommandLine.arguments.count > index + 1 {
+            do { try DesignPreview.render(to: URL(fileURLWithPath: CommandLine.arguments[index + 1])) }
+            catch { FileHandle.standardError.write(Data("Design render failed: \(error)\n".utf8)); exit(1) }
+            return
+        }
+        #endif
         let delegate = AppDelegate(); app.delegate = delegate
         withExtendedLifetime(delegate) { app.run() }
     }

@@ -13,7 +13,8 @@ import SwiftUI
     private var lastAttempt: Date?
     private var fileURL: URL?
     var storageError: String?
-    init() {
+    init(inMemory: Bool = false) {
+        if inMemory { refreshMinutes = 15; selectedCurrency = "USD"; return }
         let minutes = UserDefaults.standard.object(forKey: "refreshMinutes") as? Int ?? 15
         refreshMinutes = [15,30,60].contains(minutes) ? minutes : 15
         selectedCurrency = UserDefaults.standard.string(forKey: "currency") ?? "USD"
