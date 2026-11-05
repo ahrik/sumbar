@@ -31,10 +31,10 @@ The build script creates an application for the build machine's architecture and
 
 ```sh
 swift test
-SUMBAR_LIVE_TESTS=1 swift test
+SUMBAR_LIVE_TESTS=1 swift test -c release
 ```
 
-The opt-in command checks the real CBU, securities and all three bank sources. Normal tests use synthetic fixtures. Never commit downloaded page snapshots from `work/`.
+The opt-in command checks the real CBU, securities and all three bank sources, plus complete startup and repeated refresh in an optimized release build. Normal tests use synthetic fixtures. Never commit downloaded page snapshots from `work/`.
 
 ## Interface
 
@@ -70,3 +70,11 @@ Open the repository’s root `Package.swift` in Xcode. Build artifacts are writt
 ## License
 
 MIT. Source conditions remain separate.
+
+## Startup fix in 0.1.1
+
+The previous release could terminate seconds after launch in `swift::TaskGroup::offer` during the bank-provider task group. Three matching crash reports and the release-mode startup regression reproduced the fault. Bank requests now use explicitly retained concurrent tasks, awaited through completion with cancellation propagation, instead of that nested task group. The launch and manual refresh paths use the same corrected code.
+
+Provider-only tests did not exercise the failing orchestration. `StartupTests` now checks complete refresh and a second refresh in release mode. Avoid relying on a debug build or individual HTTP checks as startup validation.
+
+After building the `.app`, run `python3 scripts/check-launch.py outputs/Sumbar.app --seconds 30` on a Mac desktop. It starts the real release binary normally and with `--preview`, checks that both remain alive, then terminates only its own child processes.

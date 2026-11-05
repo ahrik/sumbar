@@ -50,23 +50,27 @@ import SwiftUI
     func refreshBanks() async {
         guard !loadingBanks else { return }; loadingBanks = true
         defer { loadingBanks = false; save() }
-        await withTaskGroup(of: (String, [BankQuote]?, String?).self) { group in
-            for source in BankProviders.sources {
-                group.addTask {
-                    do { return (source.id, try await BankProviders.load(source), nil) }
-                    catch { return (source.id, nil, error.localizedDescription) }
-                }
-            }
-            for await (provider, quotes, error) in group {
-                if let quotes {
+        // Retain explicit jobs through completion. The previous nested task group
+        // crashed in TaskGroup::offer in the shipped optimized macOS binary.
+        // Requests still run concurrently; no group-owned result context escapes.
+        let jobs = BankProviders.sources.map { source in
+            Task { @MainActor in
+                do {
+                    let quotes = try await BankProviders.load(source)
                     var current = cache.bankQuotes ?? []
-                    current.removeAll { $0.provider == provider }
+                    current.removeAll { $0.provider == source.id }
                     current.append(contentsOf: quotes); cache.bankQuotes = current
-                    bankErrors.removeValue(forKey: provider)
-                } else { bankErrors[provider] = error ?? "Нет данных" }
+                    bankErrors.removeValue(forKey: source.id)
+                } catch { bankErrors[source.id] = error.localizedDescription }
             }
         }
+        await withTaskCancellationHandler {
+            for job in jobs { await job.value }
+        } onCancel: {
+            for job in jobs { job.cancel() }
+        }
     }
+
     private func refreshFX() async {
         do {
             let quotes = try await Providers.currencies(); cache.currencies = quotes; cache.fxChecked = Date(); fxError = nil

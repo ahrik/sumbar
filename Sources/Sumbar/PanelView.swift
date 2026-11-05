@@ -330,7 +330,7 @@ struct PanelView: View {
                 Link("Условия Finmind", destination: URL(string: "https://finmind.uz/developers")!).font(.system(size: 11)).padding(.top, 5)
             }.font(.system(size: 12))
             if let error = store.storageError { notice(error) }
-            HStack { Text("Sumbar 0.1"); Spacer(); Text("Открытый исходный код") }.font(.system(size: 11)).foregroundStyle(.secondary)
+            HStack { Text("Sumbar \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev")"); Spacer(); Text("Открытый исходный код") }.font(.system(size: 11)).foregroundStyle(.secondary)
         }
     }
     private func valid(_ text: String) -> Decimal? { Money.parse(text).flatMap { $0 >= 0 && $0 <= Decimal(1_000_000_000_000) ? $0 : nil } }
