@@ -40,6 +40,12 @@ struct L10n {
         return self("\(status.isCurrent ? self("Проверено") : self("Проверка устарела")) \(Dates.display(date))")
     }
     func error(_ error: Error) -> String {
+        if let error = error as? CBUConnectionError {
+            switch error {
+            case .certificate: return self("Не удалось проверить HTTPS-сертификат ЦБ. Повторите обновление позже или проверьте VPN и сеть.")
+            case .tls: return self("Не удалось установить защищённое соединение с ЦБ. Повторите обновление позже или проверьте VPN и сеть.")
+            }
+        }
         if let error = error as? MarketError {
             switch error {
             case .invalidData: return self("Источник вернул данные неизвестного формата.")

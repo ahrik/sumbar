@@ -337,3 +337,5 @@
 "Ссылки открывают первоисточник. Названия документов сохранены на языке публикации." = "Havolalar asl manbani ochadi. Hujjat nomlari nashr tilida saqlangan.";
 "Ставка купона" = "Kupon stavkasi";
 "Цены в %@ за бумагу" = "Bir qog‘oz uchun %@ hisobidagi narxlar";
+"Не удалось проверить HTTPS-сертификат ЦБ. Повторите обновление позже или проверьте VPN и сеть." = "Markaziy bankning HTTPS sertifikatini tekshirib bo‘lmadi. Keyinroq yangilang yoki VPN va tarmoqni tekshiring.";
+"Не удалось установить защищённое соединение с ЦБ. Повторите обновление позже или проверьте VPN и сеть." = "Markaziy bank bilan xavfsiz ulanishni o‘rnatib bo‘lmadi. Keyinroq yangilang yoki VPN va tarmoqni tekshiring.";

@@ -125,4 +125,12 @@ The securities card keeps each metric attached to its source session date. Empty
 
 The header pin creates a floating, resizable native window. It stays above other windows while switching applications. The window's close button returns its content to the popover; Escape hides it and the global shortcut shows/hides the active presentation. Pinning is a session preference and does not change which quote is pinned to the menu bar.
 
-During validation on 6 November 2026, CBU HTTPS requests in this environment failed certificate verification on both the bare and www hosts. Verification was not bypassed. Archive behavior is covered by synthetic fixtures; Finmind and bank integration checks remain separate from the failing CBU checks. Until the CBU connection succeeds, the app retains its local data and reports the source error.
+During initial validation on 6 November 2026, CBU HTTPS requests failed certificate verification on both the bare and www hosts. The connection presented a self-signed Bitrix certificate. Later that day both hosts returned a trusted certificate and current/historical API requests succeeded, before any application code changed. Certificate verification was never bypassed.
+
+## CBU connection recovery in 0.4.1
+
+If a CBU request fails because of DNS, a connection timeout or a server TLS/certificate error, Sumbar makes one additional HTTPS attempt through the official `www.cbu.uz` alias. The exact requested Tashkent date is preserved; the alternate response passes the same decoding and nominal normalization. Both attempts use the existing URLSession client with its normal certificate and hostname checks. No fixed server IP, third-party rate feed, DNS configuration change or trust exception is used.
+
+HTTP errors (including 429/503 and Retry-After), invalid payloads, cancellation and offline status do not trigger the alternate attempt. A failed alternate attempt stops the request and retains saved data. Certificate and general TLS failures now identify the CBU source and suggest retrying later or checking the network/VPN, in Russian and Uzbek. This retry can help when only one official alias works; it cannot repair a certificate failure on both aliases.
+
+Validation includes selective failover, exact historical dates, Decimal normalization, cancellation between attempts, both-host certificate failure, HTTP backoff preservation and current/historical CBU integration checks.

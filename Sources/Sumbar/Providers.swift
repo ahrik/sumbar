@@ -6,11 +6,7 @@ enum Providers {
         try await client.data(url)
     }
     static func currencies(date: Date = Date()) async throws -> [CurrencyQuote] {
-        // Explicit date: the CBU's parameterless URL has different default semantics.
-        let url = URL(string: "https://cbu.uz/ru/arkhiv-kursov-valyut/json/all/\(Dates.day(date))/")!
-        let records = try JSONDecoder().decode([CBURecord].self, from: await data(url))
-        let quotes = try records.map { try $0.quote() }
-        guard !quotes.isEmpty else { throw MarketError.invalidData }; return quotes
+        try await CBUProvider.currencies(date: date, fetch: { try await data($0) })
     }
     static func decimal(_ value: Any?) -> Decimal? {
         if let s = value as? String { return Money.parse(s) }
