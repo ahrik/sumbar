@@ -6,3 +6,4 @@
 xcuserdata/
 *.xcuserstate
 /temp/
+__pycache__/

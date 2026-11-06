@@ -1,0 +1,42 @@
+name: Build and release macOS app
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: macos-26
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Test release configuration
+        run: bash scripts/swift.sh test -c release
+      - name: Install installer build tools
+        run: |
+          python -m venv temp/distribution-venv
+          temp/distribution-venv/bin/python -m pip install -r packaging/requirements.txt
+      - name: Build universal DMG and ZIP
+        env:
+          SUMBAR_UNIVERSAL: '1'
+        run: bash scripts/build-dmg.sh
+      - name: Verify installable files
+        run: temp/distribution-venv/bin/python scripts/check-distribution.py --universal
+      - name: Publish release after all checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' temp/outputs/Sumbar.app/Contents/Info.plist)
+          test "$GITHUB_REF_NAME" = "v$version"
+          gh release create "$GITHUB_REF_NAME" \
+            temp/outputs/Sumbar.dmg temp/outputs/Sumbar-macOS.zip temp/outputs/SHA256SUMS \
+            --draft --verify-tag --title "Sumbar $version" --notes-file packaging/RELEASE_NOTES.md
+          gh release edit "$GITHUB_REF_NAME" --draft=false --latest
