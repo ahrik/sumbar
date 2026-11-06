@@ -58,10 +58,12 @@ The securities calculator estimates a scenario, not an order. It omits taxes, di
 
 ## Next work
 
-1. Additional direct bank providers, branch-specific offers and bank quote history.
-2. Licensed UZSE intraday feed, preserving actual trade timestamps and gaps.
-3. Provider-specific Retry-After handling, conditional HTTP requests and additional integration tests.
-4. Alert rules, favourites, Uzbek localization, accessibility audit, signed/notarized universal releases.
+The [competitor research and improvement plan](COMPETITOR_RESEARCH.md) (Russian, 6 November 2026) compares eight products and defines priorities, acceptance criteria and delivery stages.
+
+1. Consistent provider freshness states, Retry-After handling and independent history errors.
+2. A selected quote in the menu bar, favourites, launch at login and quick conversion access.
+3. Threshold alerts, bank comparison by UZS budget, Uzbek localization and signed/notarized distribution.
+4. Historical conversion, richer securities details, then additional direct banks and a local portfolio as demand is validated.
 
 ## Contributing
 
