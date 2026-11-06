@@ -7,6 +7,7 @@ struct BankComparisonView: View {
     @State private var showAll = false
     @State private var showSourceErrors = false
     @State private var favoritesOnly = false
+    @State private var historyQuote: BankQuote?
     private var action: ExchangeAction { store.preferences.bankAction }
     private var channel: BankChannel { store.preferences.bankChannel }
     private var input: Decimal? { Money.parse(amount).flatMap { $0 >= 0 && $0 <= 1_000_000_000_000 ? $0 : nil } }
@@ -131,17 +132,21 @@ struct BankComparisonView: View {
                     }
                 }.font(.system(size: 11))
             }
+            if let error = store.bankHistory.storageError { warning(error) }
             Text(store.l10n("Расчёт без комиссий. Отделения одного банка могут предлагать разные курсы. Наличие валюты, лимиты и итоговую цену уточняйте в банке. Время проверки и время публикации показаны отдельно; Bank.uz не сообщает время публикации каждого курса."))
                 .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Text(store.l10n("Котировки старше 2 часов после проверки или 48 часов после известной публикации исключаются из сравнения. Данные источника с ошибкой тоже не участвуют."))
                 .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
+        .sheet(item: $historyQuote) { quote in BankHistoryView(store: store, quote: quote) }
     }
     private func bankRow(_ row: BankRow) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(row.quote.bankName).font(.system(size: 13, weight: .semibold)).lineLimit(2)
                 Spacer()
+                Button { historyQuote = row.quote } label: { Image(systemName: "clock.arrow.circlepath") }
+                    .buttonStyle(.borderless).help(store.l10n("История курсов банка")).accessibilityLabel(store.l10n("История курсов \(row.quote.bankName)"))
                 Button { store.toggleBankFavorite(row.quote.bankID) } label: {
                     Image(systemName: store.preferences.favoriteBanks.contains(row.quote.bankID) ? "star.fill" : "star")
                 }.buttonStyle(.borderless).accessibilityLabel(store.l10n("Избранный банк \(row.quote.bankName)"))

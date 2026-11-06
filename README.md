@@ -67,13 +67,13 @@ The securities calculator estimates a scenario, not an order. It omits taxes, di
 
 ## Local storage
 
-`~/Library/Application Support/Sumbar/currency-history.json` stores requested-day CBU snapshots with effective dates and successful-check timestamps. `~/Library/Application Support/Sumbar/alerts.json` stores alert rules, crossing/delivery state and the observation that triggered an alert. `~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings and favourites use macOS UserDefaults (`overviewPreferences`); the original currency and refresh settings migrate on first use. Missing saved instruments and pins are retained as unavailable rather than silently replaced. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU, Finmind, Ipak Yuli Bank, Kapitalbank and Bank.uz. Bank snapshots share the local cache; older cache files without bank data remain readable.
+`~/Library/Application Support/Sumbar/bank-history.json` stores local successful bank-rate observations, kept separately by bank, currency, exchange channel and provider. `~/Library/Application Support/Sumbar/currency-history.json` stores requested-day CBU snapshots with effective dates and successful-check timestamps. `~/Library/Application Support/Sumbar/alerts.json` stores alert rules, crossing/delivery state and the observation that triggered an alert. `~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings and favourites use macOS UserDefaults (`overviewPreferences`); the original currency and refresh settings migrate on first use. Missing saved instruments and pins are retained as unavailable rather than silently replaced. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU, Finmind, Ipak Yuli Bank, Kapitalbank and Bank.uz. Bank snapshots share the local cache; older cache files without bank data remain readable.
 
 ## Next work
 
 The [competitor research and improvement plan](COMPETITOR_RESEARCH.md) (Russian, 6 November 2026) compares eight products and defines priorities, acceptance criteria and delivery stages.
 
-Stages A+B, the functional work from C and the historical/context/panel work from D are implemented. Public Developer ID signing/notarization and a full manual accessibility audit remain. Next: additional direct banks, local bank-rate observations, positions and confirmed payout events as demand is validated. A verified bulk CBU history source could later replace the weekly quarter/year sampling.
+Stages A+B, the functional work from C and the historical/context/panel work from D are implemented. Public Developer ID signing/notarization and a full manual accessibility audit remain. Stage E now includes local bank-rate observations. Next: additional direct banks, positions, user-data backup and confirmed payout events as demand is validated. A verified bulk CBU history source could later replace the weekly quarter/year sampling.
 
 ## Contributing
 
@@ -134,3 +134,12 @@ If a CBU request fails because of DNS, a connection timeout or a server TLS/cert
 HTTP errors (including 429/503 and Retry-After), invalid payloads, cancellation and offline status do not trigger the alternate attempt. A failed alternate attempt stops the request and retains saved data. Certificate and general TLS failures now identify the CBU source and suggest retrying later or checking the network/VPN, in Russian and Uzbek. This retry can help when only one official alias works; it cannot repair a certificate failure on both aliases.
 
 Validation includes selective failover, exact historical dates, Decimal normalization, cancellation between attempts, both-host certificate failure, HTTP backoff preservation and current/historical CBU integration checks.
+
+
+## Bank observations in 0.5.0
+
+Use the clock button beside a bank to open its observed buy/sell rates for the last 7 or 31 days. Both sides use the bank’s direction (the bank buys / the bank sells), in UZS per foreign unit. The source selector keeps direct-bank and Bank.uz observations separate, including their publication times when known. The chart displays points only, so missing checks are never presented as known prices. The latest observation also has a readable numeric summary and separate check/publication timestamps in Tashkent time.
+
+History starts with successful checks after this update; old cache entries are not backfilled. It collects while the application is running, using the existing refresh schedule without additional network requests. Each stream records at most one observation per minute, retains unchanged rates on later checks, and keeps a rolling 31 days. Closed-app intervals, failed providers, invalid prices, future checks and stale quotes create no observations. Unknown publication time stays unknown. Local observations do not change current rankings or alert freshness rules.
+
+History persists atomically in its own file. Read failures preserve the original file and prevent overwriting it; write failures remain visible on the bank screen and history sheet. In-memory samples remain usable after a storage error. Tests cover source/channel/currency isolation, Decimal round trips, gaps, deduplication, retention, stale/future samples, partial provider failures and storage failures.

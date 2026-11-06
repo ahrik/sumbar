@@ -339,3 +339,14 @@
 "Цены в %@ за бумагу" = "Bir qog‘oz uchun %@ hisobidagi narxlar";
 "Не удалось проверить HTTPS-сертификат ЦБ. Повторите обновление позже или проверьте VPN и сеть." = "Markaziy bankning HTTPS sertifikatini tekshirib bo‘lmadi. Keyinroq yangilang yoki VPN va tarmoqni tekshiring.";
 "Не удалось установить защищённое соединение с ЦБ. Повторите обновление позже или проверьте VPN и сеть." = "Markaziy bank bilan xavfsiz ulanishni o‘rnatib bo‘lmadi. Keyinroq yangilang yoki VPN va tarmoqni tekshiring.";
+"История курсов банка" = "Bank kurslari tarixi";
+"История курсов %@" = "%@ kurslari tarixi";
+"Локальные наблюдения · UZS за 1 %@" = "Mahalliy kuzatuvlar · 1 %@ uchun UZS";
+"История пока пуста" = "Tarix hozircha bo‘sh";
+"Наблюдения появятся после успешного обновления курсов." = "Kurslar muvaffaqiyatli yangilangach kuzatuvlar paydo bo‘ladi.";
+"Последнее наблюдение: %@ · Ташкент" = "Oxirgi kuzatuv: %@ · Toshkent";
+"Сохраняются только успешные проверки при работающем приложении. Пропуски не заполняются; точки не соединяются. Источники и способы обмена учитываются отдельно." = "Faqat ilova ishlayotganida muvaffaqiyatli tekshirilgan kurslar saqlanadi. Bo‘shliqlar to‘ldirilmaydi; nuqtalar ulanmaydi. Manbalar va ayirboshlash usullari alohida hisobga olinadi.";
+"Не удалось прочитать историю банков. Исходный файл сохранён." = "Bank tarixini o‘qib bo‘lmadi. Asl fayl saqlandi.";
+"Не удалось сохранить историю банков: %@" = "Bank tarixini saqlab bo‘lmadi: %@";
+"Период" = "Davr";
+"Месяц" = "Oy";

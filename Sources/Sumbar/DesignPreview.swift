@@ -7,6 +7,7 @@ import SwiftUI
     static func fixture() -> MarketStore {
         let store = MarketStore(inMemory: true)
         let now = Date()
+        store.now = now
         store.cache.fxChecked = now; store.cache.stocksChecked = now
         store.cache.currencies = [
             CurrencyQuote(code: "USD", name: "Доллар США", price: 12530, change: Decimal(string: "24.50")!, effectiveDate: Dates.formatter("dd.MM.yyyy").string(from: now), nameUz: "AQSH dollari"),
@@ -43,6 +44,13 @@ import SwiftUI
             BankQuote(bankID: "demo-c", bankName: "Пример банка C", currency: "USD", channel: .cash, buy: 12480, sell: 12590, provider: "bankuz", sourceURL: BankProviders.sources[2].url, publishedAt: nil, observedAt: now)
         ]
         store.alerts.draft = RateAlertDraft(threshold: "12500")
+        for offset in [30, 20, 15, 11, 10, 9, 7, 5, 4, 2, 1, 0] {
+            let checked = now.addingTimeInterval(-Double(offset) * 86400)
+            for quote in store.cache.bankQuotes ?? [] {
+                let sample = BankQuote(bankID: quote.bankID, bankName: quote.bankName, currency: quote.currency, channel: quote.channel, buy: (quote.buy ?? 0) + Decimal(offset * 3), sell: (quote.sell ?? 0) + Decimal(offset * 2), provider: quote.provider, sourceURL: quote.sourceURL, publishedAt: quote.publishedAt == nil ? nil : checked.addingTimeInterval(-3600), observedAt: checked)
+                store.bankHistory.record([sample], provider: quote.provider, at: checked)
+            }
+        }
         let rule = RateAlertRule(source: .cbu, currency: "USD", bankID: nil, bankName: nil, channel: .cash, action: .buy, comparison: .atOrBelow, threshold: 12500, notifyOnFirstMatch: false)
         _ = store.alerts.add(rule)
         return store
@@ -81,6 +89,7 @@ import SwiftUI
         }
         let store = fixture(); store.language = .uz
         let cases: [(String, AnyView, CGFloat)] = [
+            ("bank-history-uz", AnyView(BankHistoryView(store: store, quote: store.cache.bankQuotes![0])), 580),
             ("historical-converter-uz", AnyView(FXConverterView(store: store, current: store.currency!, historical: true, date: Date().addingTimeInterval(-6 * 86400))), 440),
             ("security-context-uz", AnyView(SecurityContextView(store: store, instrument: store.instrument!, detail: store.cache.details[store.instrument!.id]!)), 500),
             ("year-chart-uz", AnyView(PanelView(store: store, panelHeight: 760, panelWidth: 660, isDesignPreview: true, desktop: DesktopControls(), tab: 0, period: .year)), 760)

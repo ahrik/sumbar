@@ -67,3 +67,8 @@ The converter adds an explicit current/historical mode with a calendar date fiel
 The header panel pin (Shift-Command-P) is distinct from quote pins. It moves the same hosting controller into a resizable floating NSPanel rather than replacing the selected view. The popover restores its original dimensions when unpinned. The launch checker also validates nonzero visible layout dimensions in popover and floating modes.
 
 Security context uses quiet source-labelled rows for session metrics and bond fields, followed by up to five source links. Unknown values remain dashes. Monetary bond calculations explicitly require a known price basis and, for percent-of-par quotes, nominal.
+
+
+## Bank observation history
+
+The clock action on each bank row opens a focused history sheet with bank/currency/channel identity, a source selector, week/month periods, two bank-side point series and the last numeric observation. No connecting line spans intervals without checks. Both source publication and local observation time are shown separately; Bank.uz’s missing publication time remains explicit. Empty history explains that collection starts with successful updates. Storage errors appear both beside the bank list and inside the sheet. RU/UZ use the existing catalogues.

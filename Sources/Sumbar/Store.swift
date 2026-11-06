@@ -18,7 +18,8 @@ struct MarketLoaders: Sendable {
     var now = Date()
     let alerts: RateAlerts
     let archive: CurrencyArchive
-    var language: AppLanguage { didSet { defaults?.set(language.rawValue, forKey: "language"); alerts.language = language; archive.language = language } }
+    let bankHistory: BankHistory
+    var language: AppLanguage { didSet { defaults?.set(language.rawValue, forKey: "language"); alerts.language = language; archive.language = language; bankHistory.language = language } }
     var l10n: L10n { L10n(language: language) }
     var preferences: OverviewPreferences { didSet { if let defaults { preferences.save(defaults) } } }
     var refreshMinutes: Int {
@@ -54,6 +55,8 @@ struct MarketLoaders: Sendable {
         alerts = RateAlerts(fileURL: alertURL)
         let archiveURL = inMemory ? nil : alertURL?.deletingLastPathComponent().appendingPathComponent("currency-history.json")
         archive = CurrencyArchive(fileURL: archiveURL, loader: loaders.currencies)
+        bankHistory = BankHistory(fileURL: inMemory ? nil : alertURL?.deletingLastPathComponent().appendingPathComponent("bank-history.json"))
+        bankHistory.language = language
         alerts.language = language
         archive.language = language
         if inMemory { return }
@@ -171,7 +174,7 @@ struct MarketLoaders: Sendable {
     }
     func refreshBanks(force: Bool = true) async {
         guard !loadingBanks else { return }; loadingBanks = true
-        defer { loadingBanks = false; save() }
+        defer { loadingBanks = false; bankHistory.save(); save() }
         // Explicit retained tasks avoid the optimized TaskGroup startup crash in 0.1.0.
         let sources = BankProviders.sources.filter { source in
             shouldFetch(source.id, force: force, checked: cache.bankQuotes?.filter { $0.provider == source.id }.map(\.observedAt).max())
@@ -180,6 +183,8 @@ struct MarketLoaders: Sendable {
             Task { @MainActor in
                 do {
                     let quotes = try await loaders.bank(source)
+                    try Task.checkCancellation()
+                    bankHistory.record(quotes, provider: source.id)
                     var current = cache.bankQuotes ?? []
                     current.removeAll { $0.provider == source.id }
                     current.append(contentsOf: quotes); cache.bankQuotes = current
@@ -192,6 +197,7 @@ struct MarketLoaders: Sendable {
         } onCancel: {
             for job in jobs { job.cancel() }
         }
+        now = Date()
         if !loading { await evaluateAlerts() }
     }
     private func refreshFX(force: Bool) async {
