@@ -6,7 +6,7 @@ enum BankChannel: String, Codable, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
     var title: String { switch self { case .cash: "В кассе"; case .app: "В приложении"; case .atm: "В банкомате" } }
 }
-enum ExchangeAction: String, CaseIterable, Identifiable {
+enum ExchangeAction: String, Codable, CaseIterable, Identifiable, Sendable {
     case buy, sell
     var id: String { rawValue }
     func rate(_ quote: BankQuote) -> Decimal? {

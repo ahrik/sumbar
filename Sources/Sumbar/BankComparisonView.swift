@@ -2,14 +2,16 @@ import SwiftUI
 
 struct BankComparisonView: View {
     @Bindable var store: MarketStore
-    @State private var action: ExchangeAction = .buy
-    @State private var channel: BankChannel = .cash
     @State private var amount = "1000"
     @State private var showAll = false
     @State private var showSourceErrors = false
+    @State private var favoritesOnly = false
+    private var action: ExchangeAction { store.preferences.bankAction }
+    private var channel: BankChannel { store.preferences.bankChannel }
     private var input: Decimal? { Money.parse(amount).flatMap { $0 >= 0 && $0 <= 1_000_000_000_000 ? $0 : nil } }
     private var rows: [BankRow] {
-        BankComparison.rows(quotes: store.cache.bankQuotes ?? [], currency: store.selectedCurrency, channel: channel, action: action, amount: input, failedProviders: Set(store.bankErrors.keys))
+        BankComparison.rows(quotes: store.cache.bankQuotes ?? [], currency: store.selectedCurrency, channel: channel, action: action, amount: input, failedProviders: Set(store.bankErrors.keys), at: store.now)
+            .filter { !favoritesOnly || store.preferences.favoriteBanks.contains($0.quote.bankID) }
     }
     private var eligible: [BankRow] { rows.filter(\.eligible) }
     private var codes: [String] { Array(Set((store.cache.bankQuotes ?? []).map(\.currency) + [store.selectedCurrency])).sorted() }
@@ -26,7 +28,7 @@ struct BankComparisonView: View {
                     ForEach(codes, id: \.self) { Text($0).tag($0) }
                 }.labelsHidden().frame(width: 80)
             }
-            Picker("Операция", selection: $action) {
+            Picker("Операция", selection: $store.preferences.bankAction) {
                 Text("Покупаю \(store.selectedCurrency)").tag(ExchangeAction.buy)
                 Text("Продаю \(store.selectedCurrency)").tag(ExchangeAction.sell)
             }.pickerStyle(.segmented).labelsHidden()
@@ -37,11 +39,12 @@ struct BankComparisonView: View {
                 }
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Способ обмена").font(.system(size: 11)).foregroundStyle(.secondary)
-                    Picker("Способ обмена", selection: $channel) {
+                    Picker("Способ обмена", selection: $store.preferences.bankChannel) {
                         ForEach(BankChannel.allCases) { Text($0.title).tag($0) }
                     }.labelsHidden().frame(maxWidth: .infinity)
                 }
             }
+            Toggle("Только избранные банки", isOn: $favoritesOnly).toggleStyle(.checkbox).font(.system(size: 12))
             if input == nil {
                 warning("Введите сумму от 0 до 1 000 000 000 000. Сортировка по курсу сохранена, итог не рассчитан.")
             }
@@ -78,7 +81,7 @@ struct BankComparisonView: View {
                 VStack(spacing: 10) {
                     Image(systemName: "building.columns").font(.system(size: 28, weight: .light)).foregroundStyle(SumbarDesign.blue)
                     Text("Для этого способа данных пока нет").font(.system(size: 13, weight: .medium))
-                    Text("Выберите другую валюту или способ обмена.").font(.system(size: 11)).foregroundStyle(.secondary)
+                    Text(favoritesOnly ? "Добавьте банк в избранное или выключите фильтр." : "Выберите другую валюту или способ обмена.").font(.system(size: 11)).foregroundStyle(.secondary)
                     Button("Обновить курсы банков") { Task { await store.refreshBanks() } }.buttonStyle(.bordered)
                 }.frame(maxWidth: .infinity).padding(.vertical, 18)
             } else { warning("Нет данных для выбора лучшего курса. Сохранённые котировки показаны ниже с отметкой.") }
@@ -115,6 +118,12 @@ struct BankComparisonView: View {
             HStack {
                 Text(row.quote.bankName).font(.system(size: 13, weight: .semibold)).lineLimit(2)
                 Spacer()
+                Button { store.toggleBankFavorite(row.quote.bankID) } label: {
+                    Image(systemName: store.preferences.favoriteBanks.contains(row.quote.bankID) ? "star.fill" : "star")
+                }.buttonStyle(.borderless).accessibilityLabel("Избранный банк \(row.quote.bankName)")
+                    .accessibilityValue(store.preferences.favoriteBanks.contains(row.quote.bankID) ? "В избранном" : "Не в избранном")
+                Button { store.pinBank(row.quote.bankID) } label: { Image(systemName: "pin") }
+                    .buttonStyle(.borderless).help("Показать этот курс в строке меню").accessibilityLabel("Закрепить курс \(row.quote.bankName)")
                 if row.eligible, eligible.count > 1, row.rate == eligible.first?.rate {
                     Text("Лучший курс").font(.system(size: 11, weight: .semibold)).foregroundStyle(SumbarDesign.blue)
                 } else if !row.eligible {

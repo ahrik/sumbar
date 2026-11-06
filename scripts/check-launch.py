@@ -21,8 +21,10 @@ binary = args.app.resolve() / 'Contents' / 'MacOS' / 'Sumbar'
 if not binary.is_file():
     parser.error(f'App executable not found: {binary}')
 
+log_dir = Path(__file__).resolve().parents[1] / 'temp' / 'launch-check'
+log_dir.mkdir(parents=True, exist_ok=True)
 for mode, flags in [('normal', []), ('popover', ['--preview'])]:
-    with tempfile.TemporaryFile() as log:
+    with tempfile.TemporaryFile(dir=log_dir) as log:
         started = time.monotonic()
         child = subprocess.Popen([str(binary), *flags], stdout=log, stderr=log)
         try:

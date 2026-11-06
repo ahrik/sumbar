@@ -7,9 +7,9 @@ A native macOS menu bar application for Uzbekistan's currencies and securities. 
 Install Xcode (or an appropriate Swift toolchain with macOS SDK). From the repository folder, run:
 
 ```sh
-swift test
+bash scripts/swift.sh test
 bash scripts/build-app.sh
-open outputs/Sumbar.app
+open temp/outputs/Sumbar.app
 ```
 
 Click the chart icon in the macOS menu bar. The application has no Dock icon. Click outside the panel to dismiss it; it continues checking data while running. Choose Quit in the panel to stop it. `Sumbar.app/Contents/MacOS/Sumbar --preview` opens the panel immediately for review.
@@ -18,6 +18,10 @@ The build script creates an application for the build machine's architecture and
 
 ## Implemented
 
+- A selected CBU rate, bank buy/sell quote or explicitly labelled securities close directly in the menu bar. Pin buttons and settings select the quote; unavailable or stale data shows a dash, with dates and source in the tooltip.
+- Persistent favourite currencies, banks and securities, a favourite-bank filter, restored selections and copyable conversion results. Bank pins retain their own operation/channel independently of browsing.
+- Configurable global panel shortcut (default Option-Command-S; alternatives and Off in settings), plus launch at login through macOS settings. Launch at login is available from the built `.app`; it is off until the user enables it.
+- Provider scheduling avoids requests on every panel opening. HTTP 429/503 Retry-After is respected across endpoints on that host, and ETag/Last-Modified validators are used when supplied. Currency and per-security history failures stay independent.
 - An adaptive native popover anchored to the menu bar, light/dark/system appearance, glass navigation on macOS 26+ and standard material fallback on macOS 14/15.
 - Commercial bank comparison: direct Ipak Yuli Bank and Kapitalbank rates plus exchange-office offers from Bank.uz. Customer buy/sell direction, channel filters, totals and differences, per-row sources and publication/check times.
 - Official CBU rates, all published currencies, correct normalization by `Nominal`, effective dates, seven-day publication history.
@@ -30,11 +34,11 @@ The build script creates an application for the build machine's architecture and
 ## Validation
 
 ```sh
-swift test
-SUMBAR_LIVE_TESTS=1 swift test -c release
+bash scripts/swift.sh test
+SUMBAR_LIVE_TESTS=1 bash scripts/swift.sh test -c release
 ```
 
-The opt-in command checks the real CBU, securities and all three bank sources, plus complete startup and repeated refresh in an optimized release build. Normal tests use synthetic fixtures. Never commit downloaded page snapshots from `work/`.
+The opt-in command checks the real CBU, securities and all three bank sources, plus complete startup and repeated refresh in an optimized release build. Normal tests use synthetic fixtures. Never commit downloaded page snapshots from `temp/work/`.
 
 ## Interface
 
@@ -54,20 +58,17 @@ The securities calculator estimates a scenario, not an order. It omits taxes, di
 
 ## Local storage
 
-`~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings use macOS UserDefaults. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU, Finmind, Ipak Yuli Bank, Kapitalbank and Bank.uz. Bank snapshots share the local cache; older cache files without bank data remain readable.
+`~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings and favourites use macOS UserDefaults (`overviewPreferences`); the original currency and refresh settings migrate on first use. Missing saved instruments and pins are retained as unavailable rather than silently replaced. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU, Finmind, Ipak Yuli Bank, Kapitalbank and Bank.uz. Bank snapshots share the local cache; older cache files without bank data remain readable.
 
 ## Next work
 
 The [competitor research and improvement plan](COMPETITOR_RESEARCH.md) (Russian, 6 November 2026) compares eight products and defines priorities, acceptance criteria and delivery stages.
 
-1. Consistent provider freshness states, Retry-After handling and independent history errors.
-2. A selected quote in the menu bar, favourites, launch at login and quick conversion access.
-3. Threshold alerts, bank comparison by UZS budget, Uzbek localization and signed/notarized distribution.
-4. Historical conversion, richer securities details, then additional direct banks and a local portfolio as demand is validated.
+The first milestone (stages A+B) is implemented. Next: threshold alerts, bank comparison by UZS budget, Uzbek localization and signed/notarized distribution. Historical conversion, richer securities details, additional direct banks and a local portfolio follow as demand is validated.
 
 ## Contributing
 
-Open the repository’s root `Package.swift` in Xcode. Build artifacts are written to `outputs/` and excluded from Git. Keep provider parsing separate from SwiftUI; retain Decimal for money; include synthetic fixtures/tests for schema changes; never commit personal cache data. Validate with `swift test` and a release build. Submit small changes describing visible behavior and validation.
+Open the repository’s root `Package.swift` in Xcode. Run SwiftPM through `bash scripts/swift.sh build` or `bash scripts/swift.sh test`. Build artifacts, caches, previews and temporary checks are written under `temp/` and excluded from Git. The app bundle and zip are in `temp/outputs/`. Keep provider parsing separate from SwiftUI; retain Decimal for money; include synthetic fixtures/tests for schema changes; never commit personal cache data. Validate with `bash scripts/swift.sh test` and a release build. Submit small changes describing visible behavior and validation.
 
 ## License
 
@@ -79,4 +80,12 @@ The previous release could terminate seconds after launch in `swift::TaskGroup::
 
 Provider-only tests did not exercise the failing orchestration. `StartupTests` now checks complete refresh and a second refresh in release mode. Avoid relying on a debug build or individual HTTP checks as startup validation.
 
-After building the `.app`, run `python3 scripts/check-launch.py outputs/Sumbar.app --seconds 30` on a Mac desktop. It starts the real release binary normally and with `--preview`, checks that both remain alive, then terminates only its own child processes.
+After building the `.app`, run `python3 scripts/check-launch.py temp/outputs/Sumbar.app --seconds 30` on a Mac desktop. It starts the real release binary normally and with `--preview`, checks that both remain alive, then terminates only its own child processes.
+
+## Daily overview in 0.2.0
+
+Click the pin beside a currency, bank row or security to show it in the menu bar. A star adds it to favourites. In Settings, choose the menu display, pinned currency/bank/security and the global shortcut. A bank pin stores the customer operation and channel at the time it is pinned; changing the comparison screen does not change that pin. Opening Sumbar from the menu bar or global shortcut returns to the pinned quote.
+
+Menu CBU/security checks become stale after two selected refresh intervals. CBU publication dates also need to be valid, not in the future or more than seven calendar days old. Securities show the actual saved session even if it is old, and always label the value as a close. Bank pins use the same source-failure, channel, side and age rules as the comparison. Cached values remain available in the panel when the menu shows a dash. Automatic checks and keyboard access work only while Sumbar runs; there is no monitoring during sleep or after Quit.
+
+The build helper keeps SwiftPM scratch files, caches and compiler temporary files in `temp/`. Existing `.build`, `outputs` and `work` directories from earlier local builds can be moved to `temp/legacy-build`, `temp/outputs` and `temp/work`; moved compiler caches are not reused because their absolute paths may be invalid. The legacy ignore entries remain as a safeguard for direct SwiftPM/Xcode use.

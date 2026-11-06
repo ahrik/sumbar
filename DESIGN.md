@@ -40,8 +40,14 @@ System appearance is the default. Users may choose Light or Dark in settings. Re
 The debug-only renderer produces actual SwiftUI view images without opening a UI window, contacting providers or saving market data. All fixtures are synthetic and labelled in the header.
 
 ```sh
-swift build
-.build/debug/Sumbar --render-design outputs/design-review
+bash scripts/swift.sh build
+temp/build/debug/Sumbar --render-design temp/design-review
 ```
 
 Review the currency screen in Light and Dark, securities, settings and a shorter panel with opaque materials. The renderer cannot reproduce the compositing of the live desktop behind Liquid Glass; inspect that effect on a supported Mac. Demo values do not enter release builds.
+
+## Daily overview
+
+The existing SF typography, semantic system surfaces and blue accent extend to favourites and pin actions. Horizontal favourite currency cards scroll when the list exceeds the panel width. Stars mark favourites; pins select a single menu bar quote. The bank filter explicitly limits comparison to favourite banks. Settings use native pickers and retain unavailable saved selections visibly.
+
+Option-Command-S opens or closes the panel globally by default. Settings offer Control-Option-S, Shift-Command-S and Off; conflicts are reported there. Launch at login is an explicit user toggle backed by Service Management. Copy writes the formatted conversion result and currency without reading the clipboard.

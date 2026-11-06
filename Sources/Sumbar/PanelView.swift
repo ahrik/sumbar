@@ -6,6 +6,7 @@ struct PanelView: View {
     @Bindable var store: MarketStore
     var panelHeight: CGFloat = 760
     var isDesignPreview = false
+    var desktop: DesktopControls? = nil
     @State var tab = 0
     @State var period = "Сегодня"
     @State private var stockPeriod = 30
@@ -17,6 +18,7 @@ struct PanelView: View {
     @State private var entry = ""
     @State private var target = ""
     @State private var fee = "0"
+    @State private var copied = false
     @AppStorage("appearance") private var appearance = "system"
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.previewOpaqueMaterial) private var previewOpaque
@@ -43,14 +45,18 @@ struct PanelView: View {
         }
         .tint(SumbarDesign.blue).preferredColorScheme(theme)
         .task { if !isDesignPreview { await store.loadCurrencyHistory() } }
+        .onAppear { if !isDesignPreview { showStoredSelection() } }
+        .onChange(of: store.panelTab) { _, _ in if !isDesignPreview { showStoredSelection() } }
+        .onChange(of: tab) { _, value in if !isDesignPreview { store.panelTab = value } }
+        .onChange(of: amount) { _, _ in copied = false }
+        .onChange(of: inverse) { _, _ in copied = false }
+        .onChange(of: store.selectedCurrency) { _, _ in copied = false }
+        .onChange(of: store.instrument?.kind) { _, kind in if let kind { securityKind = kind } }
     }
-    private var checked: Date? {
-        if tab == 1 { return store.cache.bankQuotes?.map(\.observedAt).max() }
-        return tab == 2 ? store.cache.stocksChecked : store.cache.fxChecked
-    }
-    private var isStale: Bool {
-        let error = tab == 1 ? (store.bankErrors.isEmpty ? nil : "Ошибка источника") : tab == 2 ? store.stocksError : store.fxError
-        return error != nil || checked == nil || Date().timeIntervalSince(checked!) > Double(store.refreshMinutes * 120)
+    private func showStoredSelection() {
+        tab = store.panelTab
+        if let instrument = store.instrument { securityKind = instrument.kind }
+        if tab == 2 { search = "" }
     }
     private var header: some View {
         HStack(spacing: 11) {
@@ -79,8 +85,8 @@ struct PanelView: View {
     }
     private var footer: some View {
         HStack(spacing: 7) {
-            Circle().fill(isStale ? Color.orange : SumbarDesign.positive).frame(width: 5, height: 5)
-            Text(store.loading ? "Проверяем источники…" : checked.map { "Проверено \(Dates.display($0))" } ?? "Ожидание данных")
+            Circle().fill(store.status(for: tab).isCurrent ? SumbarDesign.positive : Color.orange).frame(width: 5, height: 5)
+            Text(store.loading ? "Проверяем источники…" : store.status(for: tab).text)
                 .font(.system(size: 11)).foregroundStyle(.secondary)
             Spacer()
             Text("Ташкент").font(.system(size: 11)).foregroundStyle(.secondary)
@@ -110,8 +116,9 @@ struct PanelView: View {
         }
     }
     private var quickCurrencies: some View {
-        HStack(spacing: 8) {
-            ForEach(["USD", "EUR", "RUB", "KZT"], id: \.self) { code in
+        ScrollView(.horizontal) {
+          HStack(spacing: 8) {
+            ForEach(store.preferences.favoriteCurrencies, id: \.self) { code in
                 if let quote = store.cache.currencies.first(where: { $0.code == code }) {
                     Button {
                         withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.16)) { store.selectedCurrency = code }
@@ -119,14 +126,15 @@ struct PanelView: View {
                         VStack(alignment: .leading, spacing: 5) {
                             Text(code).font(.system(size: 12, weight: .semibold))
                             Text(Money.format(quote.price)).font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary)
-                        }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 13).padding(.vertical, 11)
+                        }.frame(width: 80, alignment: .leading).padding(.horizontal, 13).padding(.vertical, 11)
                             .background(store.selectedCurrency == code ? SumbarDesign.blue.opacity(0.12) : SumbarDesign.subtle, in: RoundedRectangle(cornerRadius: 12))
                             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(store.selectedCurrency == code ? SumbarDesign.blue.opacity(0.35) : .clear))
                     }.buttonStyle(.plain).accessibilityLabel("\(quote.name), \(Money.format(quote.price)) сум")
                         .accessibilityAddTraits(store.selectedCurrency == code ? .isSelected : [])
                 }
             }
-        }
+          }
+        }.scrollIndicators(.hidden)
     }
     private func currencyHero(_ q: CurrencyQuote) -> some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -137,6 +145,12 @@ struct PanelView: View {
                     .menuStyle(.borderlessButton).frame(maxWidth: .infinity, alignment: .leading).help("Выбрать валюту")
                 Spacer()
                 Text("Курс ЦБ").font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+                Button { store.toggleCurrencyFavorite(q.code) } label: {
+                    Image(systemName: store.preferences.favoriteCurrencies.contains(q.code) ? "star.fill" : "star")
+                }.buttonStyle(.borderless).help("В избранное").accessibilityLabel("Избранная валюта \(q.code)")
+                    .accessibilityValue(store.preferences.favoriteCurrencies.contains(q.code) ? "В избранном" : "Не в избранном")
+                Button { store.pinCurrency() } label: { Image(systemName: "pin") }
+                    .buttonStyle(.borderless).help("Показать курс ЦБ в строке меню").accessibilityLabel("Закрепить \(q.code) в строке меню")
             }
             HStack(alignment: .firstTextBaseline, spacing: 9) {
                 Text(Money.format(q.price)).font(.system(size: 43, weight: .medium, design: .rounded)).tracking(-1.5).monospacedDigit()
@@ -167,7 +181,12 @@ struct PanelView: View {
             PriceChart(points: currencyPoints, intraday: period == "Сегодня", color: SumbarDesign.blue, unit: "UZS")
             Text(period == "Сегодня" ? "Наблюдения за день. Официальный курс может оставаться неизменным." : "Официальные публикации за 7 дней. В выходные новых значений может не быть.")
                 .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            if let error = store.chartError { notice(error) }
+            if store.historyLoading { ProgressView("Загрузка архива…").controlSize(.small) }
+            if let error = store.currencyHistoryError {
+                notice(error)
+                Button("Повторить загрузку архива") { Task { await store.loadCurrencyHistory(force: true) } }
+                    .buttonStyle(.borderless).font(.system(size: 11))
+            }
         }.padding(.vertical, 2)
     }
     private func converter(_ q: CurrencyQuote) -> some View {
@@ -194,7 +213,16 @@ struct PanelView: View {
                     }.frame(maxWidth: .infinity, alignment: .trailing).accessibilityLabel("Результат конвертации")
                 }
                 if valid(amount) == nil { notice("Введите сумму от 0 до 1 000 000 000 000.") }
-                Text("Ориентировочно, без комиссий банка").font(.system(size: 11)).foregroundStyle(.secondary)
+                HStack {
+                    Text("Ориентировочно, без комиссий банка").font(.system(size: 11)).foregroundStyle(.secondary)
+                    Spacer()
+                    Button(copied ? "Скопировано" : "Копировать") {
+                        guard let n = valid(amount) else { return }
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(Money.format(inverse ? n / q.price : n * q.price) + " " + (inverse ? q.code : "UZS"), forType: .string)
+                        copied = true
+                    }.buttonStyle(.borderless).font(.system(size: 11)).disabled(valid(amount) == nil)
+                }
             }
         }
     }
@@ -221,9 +249,21 @@ struct PanelView: View {
             HStack {
                 Picker("Тип бумаги", selection: $securityKind) { Text("Акции").tag("stock"); Text("Облигации").tag("bond") }
                     .pickerStyle(.segmented).labelsHidden().frame(width: 205)
-                    .onChange(of: securityKind) { _, _ in selectFirst() }
+                    .onChange(of: securityKind) { _, _ in if store.instrument?.kind != securityKind { selectFirst() } }
                 Spacer()
                 Text("\(filtered.count) бумаг").font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            if !store.preferences.favoriteInstruments.isEmpty {
+                Menu {
+                    ForEach(store.preferences.favoriteInstruments, id: \.self) { id in
+                        if let i = store.cache.instruments.first(where: { $0.id == id }) {
+                            Button("\(i.ticker) · \(i.name)") { search = ""; store.selectedInstrumentID = i.id; securityKind = i.kind }
+                        } else { Text("\(id) — недоступна") }
+                    }
+                } label: { Label("Избранные бумаги", systemImage: "star") }.font(.system(size: 12))
+            }
+            if let id = store.selectedInstrumentID, !store.cache.instruments.contains(where: { $0.id == id }) {
+                notice("Выбранная бумага \(id) недоступна. Выберите другую из списка или обновите данные.")
             }
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
@@ -234,6 +274,9 @@ struct PanelView: View {
             if !filtered.isEmpty {
                 Picker("Бумага", selection: $store.selectedInstrumentID) {
                     Text("Выберите бумагу").tag(Optional<String>.none)
+                    if let id = store.selectedInstrumentID, !filtered.contains(where: { $0.id == id }) {
+                        Text("\(id) — недоступна").tag(Optional(id))
+                    }
                     ForEach(filtered) { i in Text("\(i.ticker) · \(i.name)").tag(Optional(i.id)) }
                 }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
                     .onChange(of: store.selectedInstrumentID) { _, _ in
@@ -248,6 +291,15 @@ struct PanelView: View {
     private func selectFirst() { store.selectedInstrumentID = filtered.first?.id }
     @ViewBuilder private func securityContent(_ i: Instrument) -> some View {
         VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text(i.ticker).font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Button { store.toggleInstrumentFavorite(i.id) } label: {
+                    Label("Избранное", systemImage: store.preferences.favoriteInstruments.contains(i.id) ? "star.fill" : "star")
+                }.buttonStyle(.borderless)
+                Button { store.pinInstrument(i.id) } label: { Image(systemName: "pin") }
+                    .buttonStyle(.borderless).help("Показать закрытие в строке меню").accessibilityLabel("Закрепить \(i.ticker) в строке меню")
+            }.font(.system(size: 11))
             HStack(alignment: .firstTextBaseline) {
                 Text(Money.format(i.price)).font(.system(size: 38, weight: .medium, design: .rounded)).tracking(-1).monospacedDigit()
                 Text(i.currency + " / шт.").font(.system(size: 12)).foregroundStyle(.secondary)
@@ -267,8 +319,12 @@ struct PanelView: View {
             let cutoff = Dates.calendar.date(byAdding: .day, value: -stockPeriod, to: Date())!
             let history = store.cache.details[i.id]?.history.filter { $0.date >= cutoff } ?? []
             PriceChart(points: history, intraday: false, color: SumbarDesign.blue, unit: i.currency)
-            if store.loadingChart { ProgressView("Загрузка истории…").controlSize(.small) }
-            if let error = store.chartError { notice(error) }
+            if store.detailLoading.contains(i.id) { ProgressView("Загрузка истории…").controlSize(.small) }
+            if let error = store.securityHistoryErrors[i.id] {
+                notice(error)
+                Button("Повторить загрузку истории") { Task { await store.loadDetail(i, force: true) } }
+                    .buttonStyle(.borderless).font(.system(size: 11))
+            }
             Text("Цены закрытия торговых сессий. Внутридневная лента не подключена.").font(.system(size: 11)).foregroundStyle(.secondary)
             securityCalculator(i)
         }
@@ -307,6 +363,7 @@ struct PanelView: View {
     }
     private var settings: some View {
         VStack(alignment: .leading, spacing: 18) {
+            OverviewSettingsView(store: store, desktop: desktop)
             Surface {
                 VStack(alignment: .leading, spacing: 15) {
                     Label("Внешний вид", systemImage: "circle.lefthalf.filled").font(.system(size: 13, weight: .semibold))
@@ -324,7 +381,7 @@ struct PanelView: View {
                 }
             }
             Label("Данные остаются на вашем Mac", systemImage: "lock.shield").font(.system(size: 13, weight: .medium))
-            Text("Курсы и настройки сохраняются локально. Без аккаунта и аналитики. Для загрузки приложение обращается к ЦБ и Finmind.").font(.system(size: 12)).foregroundStyle(.secondary)
+            Text("Курсы и настройки сохраняются локально. Без аккаунта и аналитики. Для загрузки приложение обращается к ЦБ, Finmind, Ipak Yuli Bank, Kapitalbank и Bank.uz.").font(.system(size: 12)).foregroundStyle(.secondary)
             DisclosureGroup("Об источниках и условиях") {
                 Text("Finmind предназначен для личного использования. Для распространения котировок требуется разрешение поставщика; лицензия кода не распространяется на данные.").font(.system(size: 11)).foregroundStyle(.secondary).padding(.top, 8)
                 Link("Условия Finmind", destination: URL(string: "https://finmind.uz/developers")!).font(.system(size: 11)).padding(.top, 5)

@@ -1,13 +1,9 @@
 import Foundation
 
 enum Providers {
+    static let client = MarketHTTPClient()
     static func data(_ url: URL) async throws -> Data {
-        var request = URLRequest(url: url); request.timeoutInterval = 25
-        request.setValue("Sumbar/0.1 (personal macOS market viewer)", forHTTPHeaderField: "User-Agent")
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let response = response as? HTTPURLResponse else { throw MarketError.invalidData }
-        guard response.statusCode == 200 else { throw MarketError.http(response.statusCode) }
-        return data
+        try await client.data(url)
     }
     static func currencies(date: Date = Date()) async throws -> [CurrencyQuote] {
         // Explicit date: the CBU's parameterless URL has different default semantics.
