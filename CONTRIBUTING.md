@@ -48,7 +48,7 @@ temp/distribution-venv/bin/python scripts/check-docs.py
 python3 -m http.server 8767 --directory temp/site
 ```
 
-Автоматизация `.github/workflows/docs.yml` проверяет и публикует сайт при обновлении `main`, ветки подготовки `codex/distribution-and-docs` или тега версии. В настройках Pages выбран источник GitHub Actions.
+Автоматизация `.github/workflows/docs.yml` проверяет и публикует сайт при обновлении `main` или ручном запуске. В настройках Pages выбран источник GitHub Actions; правило окружения разрешает публикацию только из `main`.
 
 Публикация тега `v<версия из Info.plist>` запускает `.github/workflows/release.yml`: release-тесты, универсальная сборка, DMG и проверка файлов. После успешных проверок создаётся черновик GitHub Release со всеми файлами, затем он становится публичным. Имена файлов сохраняются, поэтому адрес `/releases/latest/download/Sumbar.dmg` ведёт на последнюю опубликованную версию. Подпись ad hoc в этой схеме не заменяет Developer ID и нотариализацию.
 
