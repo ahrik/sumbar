@@ -19,11 +19,24 @@ import SwiftUI
             PricePoint(date: Dates.calendar.date(byAdding: .day, value: index - 6, to: now)!, price: value)
         }
         store.cache.observed["USD"] = (0...8).map { index in PricePoint(date: now.addingTimeInterval(Double(index - 8) * 900), price: 12530) }
+        store.archive.seedPreview((0...365).map { offset in
+            let date = Dates.calendar.date(byAdding: .day, value: -offset, to: now)!
+            let day = Dates.calendar.startOfDay(for: date)
+            let weekday = Dates.calendar.component(.weekday, from: day)
+            let effective = day.addingTimeInterval(weekday == 7 ? -86400 : weekday == 1 ? -2 * 86400 : 0)
+            let effectiveOffset = Dates.calendar.dateComponents([.day], from: effective, to: Dates.calendar.startOfDay(for: now)).day!
+            let quote = CurrencyQuote(code: "USD", name: "Доллар США", price: Decimal(12530 - effectiveOffset % 30 * 7), change: 0, effectiveDate: Dates.formatter("dd.MM.yyyy").string(from: effective), nameUz: "AQSH dollari")
+            return FXSnapshot(requestedDay: Dates.day(day), checkedAt: now, quotes: [quote])
+        })
         let instrument = Instrument(key: "DEMO", ticker: "DEMO", name: "Пример акции", kind: "stock", currency: "UZS", price: 589, changePercent: Decimal(string: "2.43")!, tradeDate: Dates.day())
         store.cache.instruments = [instrument]; store.selectedInstrumentID = instrument.id
         let prices: [Decimal] = [540, 548, 543, 560, 552, 568, 565, 575, 570, 582, 578, 589]
         let points = prices.enumerated().map { index, price in PricePoint(date: Dates.calendar.date(byAdding: .day, value: index * 2 - 24, to: now)!, price: price) }
-        store.cache.details[instrument.id] = SecurityDetail(history: points, coupon: nil, faceValue: nil)
+        var detail = SecurityDetail(history: points, coupon: nil, faceValue: nil)
+        detail.session = SecuritySession(date: Dates.day(now), open: 580, high: 592, low: 578, volume: 12345, turnover: 7200000, volumeUnit: "shares")
+        detail.issuerName = "Пример эмитента"; detail.sector = "Synthetic sector"
+        detail.disclosures = [IssuerDisclosure(title: "Пример раскрытия: квартальная отчётность", date: Dates.day(now), url: URL(string: "https://new.openinfo.uz/")!)]
+        store.cache.details[instrument.id] = detail
         store.cache.bankQuotes = [
             BankQuote(bankID: "demo-a", bankName: "Пример банка A", currency: "USD", channel: .cash, buy: 12490, sell: 12550, provider: "ipak", sourceURL: BankProviders.sources[0].url, publishedAt: now, observedAt: now),
             BankQuote(bankID: "demo-b", bankName: "Пример банка B", currency: "USD", channel: .cash, buy: 12500, sell: 12570, provider: "kapital", sourceURL: BankProviders.sources[1].url, publishedAt: now, observedAt: now),
@@ -60,6 +73,29 @@ import SwiftUI
             host.frame = NSRect(x: 0, y: 0, width: 520, height: height)
             host.layoutSubtreeIfNeeded()
             RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+            guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { throw MarketError.invalidData }
+            host.cacheDisplay(in: host.bounds, to: bitmap)
+            guard let png = bitmap.representation(using: .png, properties: [:]) else { throw MarketError.invalidData }
+            try png.write(to: directory.appendingPathComponent(name + ".png"))
+            window.contentView = nil
+        }
+        let store = fixture(); store.language = .uz
+        let cases: [(String, AnyView, CGFloat)] = [
+            ("historical-converter-uz", AnyView(FXConverterView(store: store, current: store.currency!, historical: true, date: Date().addingTimeInterval(-6 * 86400))), 440),
+            ("security-context-uz", AnyView(SecurityContextView(store: store, instrument: store.instrument!, detail: store.cache.details[store.instrument!.id]!)), 500),
+            ("year-chart-uz", AnyView(PanelView(store: store, panelHeight: 760, panelWidth: 660, isDesignPreview: true, desktop: DesktopControls(), tab: 0, period: .year)), 760)
+        ]
+        for (name, content, height) in cases {
+            let width: CGFloat = name == "year-chart-uz" ? 660 : 520
+            let root = VStack(alignment: .leading, spacing: 12) {
+                if name != "year-chart-uz" { Text(store.l10n("Демонстрационные данные")).font(.caption).foregroundStyle(.secondary).padding(.horizontal, 18) }
+                content
+            }.frame(width: width, height: height).background(SumbarDesign.canvas).environment(\.locale, Locale(identifier: "uz")).environment(\.colorScheme, .light)
+            let host = NSHostingView(rootView: root)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: width, height: height), styleMask: [.borderless], backing: .buffered, defer: false)
+            window.appearance = NSAppearance(named: .aqua)
+            window.contentView = host; host.frame = NSRect(x: 0, y: 0, width: width, height: height)
+            host.layoutSubtreeIfNeeded(); RunLoop.main.run(until: Date().addingTimeInterval(0.15))
             guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { throw MarketError.invalidData }
             host.cacheDisplay(in: host.bounds, to: bitmap)
             guard let png = bitmap.representation(using: .png, properties: [:]) else { throw MarketError.invalidData }

@@ -11,6 +11,9 @@ import Observation
     var loginError: String?
     var shortcutError: String?
     var togglePanel: (() -> Void)?
+    var togglePanelPin: (() -> Void)?
+    var hidePanel: (() -> Void)?
+    var panelPinned = false
     private var hotKey: EventHotKeyRef?
     private var handler: EventHandlerRef?
     private var registeredShortcut: PanelShortcut?

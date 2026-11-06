@@ -17,7 +17,8 @@ struct MarketLoaders: Sendable {
     var loading = false
     var now = Date()
     let alerts: RateAlerts
-    var language: AppLanguage { didSet { defaults?.set(language.rawValue, forKey: "language"); alerts.language = language } }
+    let archive: CurrencyArchive
+    var language: AppLanguage { didSet { defaults?.set(language.rawValue, forKey: "language"); alerts.language = language; archive.language = language } }
     var l10n: L10n { L10n(language: language) }
     var preferences: OverviewPreferences { didSet { if let defaults { preferences.save(defaults) } } }
     var refreshMinutes: Int {
@@ -51,7 +52,10 @@ struct MarketLoaders: Sendable {
         language = AppLanguage(rawValue: self.defaults?.string(forKey: "language") ?? "ru") ?? .ru
         let alertURL = inMemory ? nil : FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.appendingPathComponent("Sumbar/alerts.json")
         alerts = RateAlerts(fileURL: alertURL)
+        let archiveURL = inMemory ? nil : alertURL?.deletingLastPathComponent().appendingPathComponent("currency-history.json")
+        archive = CurrencyArchive(fileURL: archiveURL, loader: loaders.currencies)
         alerts.language = language
+        archive.language = language
         if inMemory { return }
         do {
             let dir = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("Sumbar")
@@ -194,6 +198,7 @@ struct MarketLoaders: Sendable {
         guard shouldFetch("fx", force: force, checked: cache.fxChecked) else { return }
         do {
             let quotes = try await loaders.currencies(Date()); cache.currencies = quotes; cache.fxChecked = Date(); fxError = nil
+            archive.rememberCurrent(quotes, checkedAt: cache.fxChecked!)
             let now = Date(); let start = Dates.calendar.date(byAdding: .day, value: -7, to: now)!
             for q in quotes {
                 var points = cache.observed[q.code, default: []].filter { $0.date >= start }
@@ -226,8 +231,8 @@ struct MarketLoaders: Sendable {
             for offset in (0...6).reversed() {
                 try Task.checkCancellation()
                 let date = Dates.calendar.date(byAdding: .day, value: -offset, to: Date())!
-                let quotes = try await loaders.currencies(date)
-                for q in quotes {
+                let snapshot = try await archive.fetch(date, force: force && Dates.day(date) == Dates.day())
+                for q in snapshot.quotes {
                     guard let effective = Dates.parse(q.effectiveDate, pattern: "dd.MM.yyyy") else { continue }
                     if history[q.code, default: []].last?.date != effective { history[q.code, default: []].append(PricePoint(date: effective, price: q.price)) }
                 }

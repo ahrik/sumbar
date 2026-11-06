@@ -15,7 +15,7 @@ final class AlertTests: XCTestCase {
         await alerts.evaluate(cache: cache, fxError: nil, bankErrors: errors, refreshMinutes: 15, now: now)
     }
     @MainActor func testOneShotCrossingSurvivesRestartAndDoesNotRepeat() async throws {
-        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("temp/tests/\(UUID().uuidString)")
+        let directory = TestPaths.directory()
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("alerts.json")
         let now = Date()
@@ -94,7 +94,7 @@ final class AlertTests: XCTestCase {
         XCTAssertEqual(ids.count, 2); XCTAssertEqual(ids[0], ids[1]); XCTAssertEqual(alerts.rules[0].delivery, .sent)
     }
     @MainActor func testCorruptStorageIsPreservedAndCannotBeOverwritten() throws {
-        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("temp/tests/\(UUID().uuidString)")
+        let directory = TestPaths.directory()
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("alerts.json"); let bytes = Data("broken synthetic data".utf8)
@@ -103,7 +103,7 @@ final class AlertTests: XCTestCase {
         XCTAssertNotNil(alerts.error); XCTAssertFalse(alerts.add(rule())); XCTAssertEqual(try Data(contentsOf: url), bytes)
     }
     @MainActor func testFailedPersistenceDoesNotConsumeConditionOrSend() async throws {
-        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("temp/tests/\(UUID().uuidString)")
+        let directory = TestPaths.directory()
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("alerts.json")
         let alerts = RateAlerts(fileURL: url); let now = Date()
@@ -116,7 +116,7 @@ final class AlertTests: XCTestCase {
         XCTAssertNotNil(alerts.error)
     }
     @MainActor func testPendingPersistedEventIsRecoveredWithSameIdentifier() async throws {
-        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("temp/tests/\(UUID().uuidString)")
+        let directory = TestPaths.directory()
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let now = Date(); var saved = rule(immediate: true)
@@ -132,7 +132,7 @@ final class AlertTests: XCTestCase {
         XCTAssertEqual(ids, [saved.event!.notificationID]); XCTAssertEqual(alerts.rules[0].delivery, .sent)
     }
     @MainActor func testExpiredPendingObservationIsNotSentAfterRestart() async throws {
-        let directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("temp/tests/\(UUID().uuidString)")
+        let directory = TestPaths.directory()
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let old = Date().addingTimeInterval(-3 * 3600); var saved = rule(immediate: true)

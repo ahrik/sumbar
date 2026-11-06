@@ -23,10 +23,10 @@ if not binary.is_file():
 
 log_dir = Path(__file__).resolve().parents[1] / 'temp' / 'launch-check'
 log_dir.mkdir(parents=True, exist_ok=True)
-for mode, flags in [('normal', []), ('popover', ['--preview'])]:
+for mode, flags in [('normal', []), ('popover', ['--preview']), ('pinned', ['--preview', '--pin-panel'])]:
     with tempfile.TemporaryFile(dir=log_dir) as log:
         started = time.monotonic()
-        child = subprocess.Popen([str(binary), *flags], stdout=log, stderr=log)
+        child = subprocess.Popen([str(binary), *flags, '--check-layout'], stdout=log, stderr=log)
         try:
             try:
                 code = child.wait(timeout=args.seconds)
@@ -44,4 +44,4 @@ for mode, flags in [('normal', []), ('popover', ['--preview'])]:
                 except subprocess.TimeoutExpired:
                     child.kill()
                     child.wait(timeout=5)
-print('Both release launch modes remained running.', flush=True)
+print('All three release launch modes remained running.', flush=True)

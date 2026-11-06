@@ -43,7 +43,7 @@ struct PricePoint: Codable, Identifiable, Sendable {
     var id: Date { date }
     var value: Double { NSDecimalNumber(decimal: price).doubleValue }
 }
-struct CurrencyQuote: Codable, Identifiable, Sendable {
+struct CurrencyQuote: Codable, Identifiable, Equatable, Sendable {
     let code: String; let name: String; let price: Decimal; let change: Decimal; let effectiveDate: String
     var nameUz: String? = nil
     var id: String { code }
@@ -57,6 +57,35 @@ struct SecurityDetail: Codable, Sendable {
     let history: [PricePoint]
     let coupon: Decimal?
     let faceValue: Decimal?
+    var session: SecuritySession? = nil
+    var couponFrequency: Int? = nil
+    var issueDate: String? = nil
+    var maturityDate: String? = nil
+    var issuerName: String? = nil
+    var sector: String? = nil
+    var priceBasis: String? = nil
+    var disclosures: [IssuerDisclosure]? = nil
+    func unitPrice(_ raw: Decimal?, kind: String) -> Decimal? {
+        guard let raw, raw > 0 else { return nil }
+        if kind == "stock" || priceBasis == "amount_per_bond" { return raw }
+        if priceBasis == "percent_of_par", let faceValue, faceValue > 0 { return raw * faceValue / 100 }
+        return nil
+    }
+}
+struct SecuritySession: Codable, Sendable {
+    let date: String?
+    let open: Decimal?
+    let high: Decimal?
+    let low: Decimal?
+    let volume: Decimal?
+    let turnover: Decimal?
+    let volumeUnit: String?
+}
+struct IssuerDisclosure: Codable, Identifiable, Sendable {
+    let title: String
+    let date: String?
+    let url: URL
+    var id: String { url.absoluteString + ":" + (date ?? "") + ":" + title }
 }
 struct CBURecord: Decodable, Sendable {
     let Ccy: String; let CcyNm_RU: String; let Nominal: String; let Rate: String; let Diff: String; let Date: String

@@ -59,3 +59,11 @@ The header bell opens a focused alert editor. Bank-row bells prefill the selecte
 The UZS budget/target selector retains the customer operation above it. Result captions name whether the user receives currency, pays UZS or needs to sell currency. Differences carry their own unit.
 
 RU/UZ comes from matching string catalogues with interpolation arguments kept separate from translated formats. Underlying selection IDs and parsing labels remain stable. The bank adapter still matches the original source labels. Semantic controls retain keyboard focus and explicit labels for amount, threshold, pin and bell actions; translations are visually checked in both appearances. VoiceOver interaction and real system banners still require manual desktop validation.
+
+## History and floating presentation
+
+The converter adds an explicit current/historical mode with a calendar date field, load action and source/effective/check dates. A missing selected-date rate disables the result and clipboard action. The chart exposes day/week/month/quarter/year; weekly samples and partial loads are visibly points, with coverage and stop/resume actions. The long axis includes the year and keeps edge labels inside the plot.
+
+The header panel pin (Shift-Command-P) is distinct from quote pins. It moves the same hosting controller into a resizable floating NSPanel rather than replacing the selected view. The popover restores its original dimensions when unpinned. The launch checker also validates nonzero visible layout dimensions in popover and floating modes.
+
+Security context uses quiet source-labelled rows for session metrics and bond fields, followed by up to five source links. Unknown values remain dashes. Monetary bond calculations explicitly require a known price basis and, for percent-of-par quotes, nominal.

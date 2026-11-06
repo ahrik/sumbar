@@ -18,6 +18,11 @@ The build script creates an application for the build machine's architecture and
 
 ## Implemented
 
+- Historical CBU conversion by selected Tashkent date, with the actual effective publication date and Decimal arithmetic. A missing historical quote never falls back to today's rate.
+- Currency charts for a week/month (daily requested snapshots) and quarter/year (explicitly labelled weekly samples), with persistent shared archive caching, progress, cancellation and honest partial-data display.
+- Securities context: session OHLC/volume/turnover, issuer, bond nominal/coupon/frequency/maturity and source disclosure links. Percent-of-par bond prices are converted using nominal before monetary scenario calculations; unknown price bases cannot silently become cash amounts.
+- A resizable floating panel via the header pin or Shift-Command-P, preserving the same hosted view while moving between the popover and the floating window. Escape hides it; closing its window returns to menu-bar mode.
+
 - One-shot CBU and selected-bank threshold alerts, with customer buy/sell side and cash/app/ATM channel. Rules persist before delivery, support pause/delete/manual retry and open the matching quote from a notification. Unknown bank publication times cannot trigger alerts.
 - Bank comparison accepts either a foreign-currency amount or UZS budget/target; Decimal division computes the foreign amount at each bank's applicable side.
 - Russian/Uzbek interface, menu tooltips and notification text; the language choice persists independently of existing favourites and settings. Bank names, tickers and source diagnostics retain their original text; currency names use the CBU's Uzbek field when available.
@@ -28,7 +33,7 @@ The build script creates an application for the build machine's architecture and
 - Provider scheduling avoids requests on every panel opening. HTTP 429/503 Retry-After is respected across endpoints on that host, and ETag/Last-Modified validators are used when supplied. Currency and per-security history failures stay independent.
 - An adaptive native popover anchored to the menu bar, light/dark/system appearance, glass navigation on macOS 26+ and standard material fallback on macOS 14/15.
 - Commercial bank comparison: direct Ipak Yuli Bank and Kapitalbank rates plus exchange-office offers from Bank.uz. Customer buy/sell direction, channel filters, totals and differences, per-row sources and publication/check times.
-- Official CBU rates, all published currencies, correct normalization by `Nominal`, effective dates, seven-day publication history.
+- Official CBU rates, all published currencies, correct normalization by `Nominal`, effective dates and selectable historical views.
 - Intraday FX observations saved during successful checks. This is an observation chart, not a trading feed. A single observation is displayed as a point. A constant CBU rate remains flat, never simulated.
 - Automatic checks every 15/30/60 minutes while running, explicit refresh, wake refresh, independent currency/security/bank provider failure messages.
 - UZSE stocks and bonds via the public Finmind API, per-instrument trade dates, daily closing-price history, ticker/company search.
@@ -62,13 +67,13 @@ The securities calculator estimates a scenario, not an order. It omits taxes, di
 
 ## Local storage
 
-`~/Library/Application Support/Sumbar/alerts.json` stores alert rules, crossing/delivery state and the observation that triggered an alert. `~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings and favourites use macOS UserDefaults (`overviewPreferences`); the original currency and refresh settings migrate on first use. Missing saved instruments and pins are retained as unavailable rather than silently replaced. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU, Finmind, Ipak Yuli Bank, Kapitalbank and Bank.uz. Bank snapshots share the local cache; older cache files without bank data remain readable.
+`~/Library/Application Support/Sumbar/currency-history.json` stores requested-day CBU snapshots with effective dates and successful-check timestamps. `~/Library/Application Support/Sumbar/alerts.json` stores alert rules, crossing/delivery state and the observation that triggered an alert. `~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings and favourites use macOS UserDefaults (`overviewPreferences`); the original currency and refresh settings migrate on first use. Missing saved instruments and pins are retained as unavailable rather than silently replaced. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU, Finmind, Ipak Yuli Bank, Kapitalbank and Bank.uz. Bank snapshots share the local cache; older cache files without bank data remain readable.
 
 ## Next work
 
 The [competitor research and improvement plan](COMPETITOR_RESEARCH.md) (Russian, 6 November 2026) compares eight products and defines priorities, acceptance criteria and delivery stages.
 
-Stages A+B and the alert, UZS-budget and localization work from stage C are implemented. Public Developer ID signing/notarization and a full manual accessibility audit remain. Next product work: historical conversion and richer securities details, followed by additional direct banks and a local portfolio as demand is validated.
+Stages A+B, the functional work from C and the historical/context/panel work from D are implemented. Public Developer ID signing/notarization and a full manual accessibility audit remain. Next: additional direct banks, local bank-rate observations, positions and confirmed payout events as demand is validated. A verified bulk CBU history source could later replace the weekly quarter/year sampling.
 
 ## Contributing
 
@@ -84,7 +89,7 @@ The previous release could terminate seconds after launch in `swift::TaskGroup::
 
 Provider-only tests did not exercise the failing orchestration. `StartupTests` now checks complete refresh and a second refresh in release mode. Avoid relying on a debug build or individual HTTP checks as startup validation.
 
-After building the `.app`, run `python3 scripts/check-launch.py temp/outputs/Sumbar.app --seconds 30` on a Mac desktop. It starts the real release binary normally and with `--preview`, checks that both remain alive, then terminates only its own child processes.
+After building the `.app`, run `python3 scripts/check-launch.py temp/outputs/Sumbar.app --seconds 30` on a Mac desktop. It starts the real release binary normally, with `--preview`, and with `--preview --pin-panel`. It checks the visible panel dimensions and that all three processes remain alive, then terminates only its own child processes.
 
 ## Daily overview in 0.2.0
 
@@ -107,3 +112,17 @@ In the Banks screen choose foreign amount or UZS budget (buying)/UZS target (sel
 Settings → Interface language switches RU/UZ without resetting favourites or pins. Translation resources ship inside `Sumbar_Sumbar.bundle`; the app builder copies them alongside the executable. Optional public signing is available with `SUMBAR_SIGN_IDENTITY` set to a valid Developer ID Application identity. Without it, the builder continues to sign ad hoc for local use. This machine has no such Developer ID identity; public signing/notarization was not performed.
 
 Validation covers thresholds, bank side/channel/time rules, denied delivery, pause/resume, persistence, pending-event recovery, failed writes, corrupt storage, UZS calculations and catalogue/format compatibility. The debug renderer includes both languages and the alert screen. Real system notification permission and banner interaction need a desktop check in the built app; tests use a delivery substitute and never request permission or send notifications.
+
+## History and market context in 0.4.0
+
+In the converter select “On a selected date”, choose a date and load the rate. The selected date, source publication/effective date and successful retrieval time stay separate. Weekends may use an earlier publication, but a publication after the requested day is rejected. Unsupported currency/date pairs show no result; conversion and clipboard output cannot silently use today's quote. The historical converter is independent of current menu-bar prices and alert evaluation.
+
+Long charts use the documented date-specific CBU JSON endpoint; a verified bulk range endpoint was not established. A month requests at most 32 daily snapshots; a quarter requests at most 16 and a year at most 55 anchored weekly/end-point snapshots. Weekly samples and incomplete series use points without invented connecting prices. The axis retains the selected range, and year views show the year. Coverage counts report successful requested snapshots. Multiple weekend requests for the same effective publication produce one plotted point.
+
+Snapshots contain all returned currencies, so changing currencies reuses the same dates. Past successful snapshots persist across restarts; today's snapshot can refresh after 15 minutes. Successful current-rate refreshes also seed today's archive entry without another request. Requests for the same date coalesce, range loads serialize and cancellation stops additional dates after the current shared request completes. An error stops the batch and retains successful points. Per-date failures have a short retry delay, and the existing HTTP Retry-After rules still apply. Corrupt archive files are preserved rather than overwritten.
+
+The securities card keeps each metric attached to its source session date. Empty coupon frequency is unknown, not an inferred calendar. Only HTTPS disclosure links under openinfo.uz, uzse.uz or finmind.uz are shown, with source-language titles. Bond `amount_per_bond` and `percent_of_par` are handled separately; a percentage quote requires a known nominal to produce a monetary scenario. These are still stored session data, not realtime trading prices or yield-to-maturity estimates.
+
+The header pin creates a floating, resizable native window. It stays above other windows while switching applications. The window's close button returns its content to the popover; Escape hides it and the global shortcut shows/hides the active presentation. Pinning is a session preference and does not change which quote is pinned to the menu bar.
+
+During validation on 6 November 2026, CBU HTTPS requests in this environment failed certificate verification on both the bare and www hosts. Verification was not bypassed. Archive behavior is covered by synthetic fixtures; Finmind and bank integration checks remain separate from the failing CBU checks. Until the CBU connection succeeds, the app retains its local data and reports the source error.
