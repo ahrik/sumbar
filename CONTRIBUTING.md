@@ -22,6 +22,36 @@ SUMBAR_SIGN_IDENTITY='Developer ID Application: Your Name (TEAMID)' bash scripts
 
 Эта команда подписывает приложение, но не выполняет нотариализацию. Для публичного выпуска остаются подпись, нотариализация и ручная проверка доступности. Ключи, сертификаты, пароли и загруженные котировки не включайте в репозиторий.
 
+## DMG и универсальная сборка
+
+Для установочного образа нужны Python 3.11+ и инструменты из `packaging/requirements.txt`. Они используются только при упаковке и не входят в приложение:
+
+```sh
+python3 -m venv temp/distribution-venv
+temp/distribution-venv/bin/python -m pip install -r packaging/requirements.txt
+SUMBAR_UNIVERSAL=1 bash scripts/build-dmg.sh
+temp/distribution-venv/bin/python scripts/check-distribution.py --universal
+```
+
+В `temp/outputs/` появятся `Sumbar.dmg`, `Sumbar-macOS.zip` и `SHA256SUMS`. `SUMBAR_UNIVERSAL=1` включает arm64 и x86_64; без переменной локальная сборка остаётся для текущего Mac. Положение значков, фон и ссылка в `/Applications` задаются файлом `packaging/dmg-settings.py`; оформление записывается без автоматизации Finder. Проверка монтирует DMG только для чтения и сравнивает приложение с ZIP, проверяет обе архитектуры, минимальную macOS, подпись, MIT, переводы и раскладку окна.
+
+Не меняйте FinderInfo подписанного `.app` после подписи: это нарушает строгую проверку подписи. Настройки внешнего вида установщика должны оставаться на уровне образа и его `.DS_Store`.
+
+## Сайт документации и публикация
+
+[Сайт](https://ahrik.github.io/sumbar/) — статические страницы GitHub Pages. Навигация, стили и поиск работают без внешних шрифтов, аналитики и серверного приложения. Основные тексты собираются из существующих Markdown-файлов; `web/index.md` задаёт главную страницу.
+
+```sh
+temp/distribution-venv/bin/python -m pip install -r web/requirements.txt
+temp/distribution-venv/bin/python scripts/build-docs.py
+temp/distribution-venv/bin/python scripts/check-docs.py
+python3 -m http.server 8767 --directory temp/site
+```
+
+Автоматизация `.github/workflows/docs.yml` проверяет и публикует сайт при обновлении `main` или ручном запуске. В настройках Pages выбран источник GitHub Actions; правило окружения разрешает публикацию только из `main`.
+
+Публикация тега `v<версия из Info.plist>` запускает `.github/workflows/release.yml`: release-тесты, универсальная сборка, DMG и проверка файлов. После успешных проверок создаётся черновик GitHub Release со всеми файлами, затем он становится публичным. Имена файлов сохраняются, поэтому адрес `/releases/latest/download/Sumbar.dmg` ведёт на последнюю опубликованную версию. Подпись ad hoc в этой схеме не заменяет Developer ID и нотариализацию.
+
 ## Устройство проекта
 
 | Область | Файлы |
