@@ -18,9 +18,11 @@ Sumbar помогает проверить курс сума, сравнить �
 
 ## Установка и первый запуск
 
-Сейчас воспроизводимый способ получить программу — собрать её из исходников. Нужен Xcode со Swift 6 и macOS SDK либо соответствующий набор инструментов Swift. В папке проекта выполните:
+Сейчас воспроизводимый способ получить программу — собрать её из исходников. Нужен Xcode со Swift 6 и macOS SDK либо соответствующий набор инструментов Swift. Загрузите проект из [официального репозитория](https://github.com/ahrik/sumbar) и выполните:
 
 ```sh
+git clone https://github.com/ahrik/sumbar.git
+cd sumbar
 bash scripts/swift.sh test
 bash scripts/build-app.sh
 open temp/outputs/Sumbar.app
