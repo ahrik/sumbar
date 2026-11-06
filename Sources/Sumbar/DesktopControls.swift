@@ -5,6 +5,8 @@ import Observation
 
 @MainActor @Observable final class DesktopControls {
     var loginEnabled = false
+    var language = AppLanguage.ru
+    private var tr: L10n { L10n(language: language) }
     var loginNeedsApproval = false
     var loginError: String?
     var shortcutError: String?
@@ -24,7 +26,7 @@ import Observation
         do {
             if enabled { try SMAppService.mainApp.register() }
             else { try await SMAppService.mainApp.unregister() }
-        } catch { loginError = "Не удалось изменить автозапуск: \(error.localizedDescription)" }
+        } catch { loginError = tr("Не удалось изменить автозапуск: \(tr.error(error))") }
         refreshLoginStatus()
     }
     func openLoginSettings() { SMAppService.openSystemSettingsLoginItems() }
@@ -43,7 +45,7 @@ import Observation
                 }
                 return noErr
             }, 1, &event, Unmanaged.passUnretained(self).toOpaque(), &handler)
-            guard status == noErr else { shortcutError = "Не удалось включить глобальную клавишу."; return }
+            guard status == noErr else { shortcutError = tr("Не удалось включить глобальную клавишу."); return }
         }
         let modifiers: UInt32
         switch shortcut {
@@ -53,7 +55,7 @@ import Observation
         case .off: return
         }
         let status = RegisterEventHotKey(UInt32(kVK_ANSI_S), modifiers, EventHotKeyID(signature: 0x53554D42, id: 1), GetApplicationEventTarget(), 0, &hotKey)
-        if status != noErr { shortcutError = "Клавиша \(shortcut.title) недоступна. Выберите другое сочетание." }
+        if status != noErr { shortcutError = tr("Клавиша \(shortcut.title) недоступна. Выберите другое сочетание.") }
     }
     func stop() {
         if let hotKey { UnregisterEventHotKey(hotKey) }

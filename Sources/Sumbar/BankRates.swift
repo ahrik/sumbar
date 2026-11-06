@@ -45,6 +45,14 @@ struct BankRow: Identifiable {
     let eligible: Bool
     var id: String { quote.bankID }
 }
+enum ExchangeAmountMode: String, CaseIterable, Identifiable {
+    case foreign, uzs
+    var id: String { rawValue }
+    func result(amount: Decimal?, rate: Decimal?) -> Decimal? {
+        guard let amount, amount >= 0, amount <= 1_000_000_000_000, let rate, rate > 0 else { return nil }
+        return self == .uzs ? amount / rate : amount * rate
+    }
+}
 enum BankComparison {
     static func rows(quotes: [BankQuote], currency: String, channel: BankChannel, action: ExchangeAction, amount: Decimal?, failedProviders: Set<String> = [], at now: Date = Date()) -> [BankRow] {
         let amount = amount.flatMap { $0 >= 0 && $0 <= 1_000_000_000_000 ? $0 : nil }

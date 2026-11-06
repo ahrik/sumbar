@@ -45,6 +45,7 @@ struct PricePoint: Codable, Identifiable, Sendable {
 }
 struct CurrencyQuote: Codable, Identifiable, Sendable {
     let code: String; let name: String; let price: Decimal; let change: Decimal; let effectiveDate: String
+    var nameUz: String? = nil
     var id: String { code }
 }
 struct Instrument: Codable, Identifiable, Hashable, Sendable {
@@ -59,9 +60,10 @@ struct SecurityDetail: Codable, Sendable {
 }
 struct CBURecord: Decodable, Sendable {
     let Ccy: String; let CcyNm_RU: String; let Nominal: String; let Rate: String; let Diff: String; let Date: String
+    var CcyNm_UZ: String? = nil
     func quote() throws -> CurrencyQuote {
         guard let nominal = Money.parse(Nominal), nominal > 0, let rate = Money.parse(Rate), rate > 0, let diff = Money.parse(Diff), Dates.parse(Date, pattern: "dd.MM.yyyy") != nil else { throw MarketError.invalidData }
-        return CurrencyQuote(code: Ccy, name: CcyNm_RU, price: rate / nominal, change: diff / nominal, effectiveDate: Date)
+        return CurrencyQuote(code: Ccy, name: CcyNm_RU, price: rate / nominal, change: diff / nominal, effectiveDate: Date, nameUz: CcyNm_UZ)
     }
 }
 struct CacheState: Codable {

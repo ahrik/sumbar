@@ -37,3 +37,9 @@ A single eligible bank is called an available offer, not a comparison winner. So
 Synthetic tests cover buy/sell direction, nominal/unit conversion, channel separation, stale publications, old checks, failed-source fallback, duplicate-bank preference, unknown prices, invalid amounts, legacy cache decoding and relevant page layouts. `SUMBAR_LIVE_TESTS=1 bash scripts/swift.sh test` checks all real sources. For debugging an already-downloaded response, `SUMBAR_BANK_FIXTURES=/absolute/directory` can point the bank integration test at `ipak.html`, `kapital-old.html`, `bankuz.html`; these files must remain outside Git.
 
 Menu bar bank pins use these same comparison rules and retain the selected bank, currency, side and channel independently of browsing. HTTP errors 429/503 impose host-wide Retry-After backoff, including manual refresh. Automatic panel opening respects the provider schedule.
+
+## Budgets and threshold rules
+
+The UZS mode divides the budget/target by the bank's sell rate when the customer buys, and by the bank's buy rate when the customer sells. The ranking order is unchanged; result differences are expressed in the selected foreign currency. The display remains indicative and excludes fees and limits.
+
+Bank alerts use a selected bank, currency, operation and channel. In addition to comparison eligibility, a known publication time is mandatory. A successful download cannot turn an undated aggregate quote into a dated publication. Triggered observations expire at the earlier of check time + 2 hours and publication time + 48 hours; pending expired events are not delivered after restart.

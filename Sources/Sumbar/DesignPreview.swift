@@ -9,7 +9,7 @@ import SwiftUI
         let now = Date()
         store.cache.fxChecked = now; store.cache.stocksChecked = now
         store.cache.currencies = [
-            CurrencyQuote(code: "USD", name: "Доллар США", price: 12530, change: Decimal(string: "24.50")!, effectiveDate: Dates.formatter("dd.MM.yyyy").string(from: now)),
+            CurrencyQuote(code: "USD", name: "Доллар США", price: 12530, change: Decimal(string: "24.50")!, effectiveDate: Dates.formatter("dd.MM.yyyy").string(from: now), nameUz: "AQSH dollari"),
             CurrencyQuote(code: "EUR", name: "Евро", price: 13690, change: -15, effectiveDate: Dates.day()),
             CurrencyQuote(code: "RUB", name: "Российский рубль", price: 138, change: 1, effectiveDate: Dates.day()),
             CurrencyQuote(code: "KZT", name: "Казахстанский тенге", price: Decimal(string: "25.34")!, change: 0, effectiveDate: Dates.day())
@@ -29,19 +29,28 @@ import SwiftUI
             BankQuote(bankID: "demo-b", bankName: "Пример банка B", currency: "USD", channel: .cash, buy: 12500, sell: 12570, provider: "kapital", sourceURL: BankProviders.sources[1].url, publishedAt: now, observedAt: now),
             BankQuote(bankID: "demo-c", bankName: "Пример банка C", currency: "USD", channel: .cash, buy: 12480, sell: 12590, provider: "bankuz", sourceURL: BankProviders.sources[2].url, publishedAt: nil, observedAt: now)
         ]
+        store.alerts.draft = RateAlertDraft(threshold: "12500")
+        let rule = RateAlertRule(source: .cbu, currency: "USD", bankID: nil, bankName: nil, channel: .cash, action: .buy, comparison: .atOrBelow, threshold: 12500, notifyOnFirstMatch: false)
+        _ = store.alerts.add(rule)
         return store
     }
     static func render(to directory: URL) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        for (name, tab, dark, reduced, height) in [
-            ("currencies-dark", 0, true, false, CGFloat(760)),
-            ("currencies-light", 0, false, false, CGFloat(760)),
-            ("banks-dark", 1, true, false, CGFloat(760)),
-            ("securities-dark", 2, true, false, CGFloat(760)),
-            ("settings-dark", 3, true, false, CGFloat(760)),
-            ("compact-accessible", 0, true, true, CGFloat(610))
+        for (name, tab, dark, reduced, height, language) in [
+            ("currencies-dark", 0, true, false, CGFloat(760), AppLanguage.ru),
+            ("currencies-light", 0, false, false, CGFloat(760), .ru),
+            ("banks-dark", 1, true, false, CGFloat(760), .ru),
+            ("securities-dark", 2, true, false, CGFloat(760), .ru),
+            ("settings-dark", 3, true, false, CGFloat(760), .ru),
+            ("alerts-light", 4, false, false, CGFloat(760), .ru),
+            ("alerts-uz", 4, true, false, CGFloat(760), .uz),
+            ("banks-uz", 1, true, false, CGFloat(760), .uz),
+            ("settings-uz", 3, false, false, CGFloat(760), .uz),
+            ("currencies-uz", 0, false, false, CGFloat(760), .uz),
+            ("compact-accessible", 0, true, true, CGFloat(610), .ru)
         ] {
-            let root = PanelView(store: fixture(), panelHeight: height, isDesignPreview: true, tab: tab, period: "7 дней")
+            let store = fixture(); store.language = language
+            let root = PanelView(store: store, panelHeight: height, isDesignPreview: true, desktop: DesktopControls(), notifications: LocalNotifications(), tab: tab, period: .week)
                 .environment(\.colorScheme, dark ? .dark : .light)
                 .environment(\.previewOpaqueMaterial, reduced)
             let host = NSHostingView(rootView: root)

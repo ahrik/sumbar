@@ -1,6 +1,6 @@
 # Sumbar
 
-A native macOS menu bar application for Uzbekistan's currencies and securities. SwiftUI, AppKit and Swift Charts; macOS 14+, no third-party packages. Interface: Russian.
+A native macOS menu bar application for Uzbekistan's currencies and securities. SwiftUI, AppKit and Swift Charts; macOS 14+, no third-party packages. Interface: Russian and Uzbek (Latin), selectable in Settings.
 
 ## Build and run
 
@@ -17,6 +17,10 @@ Click the chart icon in the macOS menu bar. The application has no Dock icon. Cl
 The build script creates an application for the build machine's architecture and signs it ad hoc for local use. Public releases still need a Developer ID signature and Apple notarization; this build is not notarized. No binaries or credentials are committed.
 
 ## Implemented
+
+- One-shot CBU and selected-bank threshold alerts, with customer buy/sell side and cash/app/ATM channel. Rules persist before delivery, support pause/delete/manual retry and open the matching quote from a notification. Unknown bank publication times cannot trigger alerts.
+- Bank comparison accepts either a foreign-currency amount or UZS budget/target; Decimal division computes the foreign amount at each bank's applicable side.
+- Russian/Uzbek interface, menu tooltips and notification text; the language choice persists independently of existing favourites and settings. Bank names, tickers and source diagnostics retain their original text; currency names use the CBU's Uzbek field when available.
 
 - A selected CBU rate, bank buy/sell quote or explicitly labelled securities close directly in the menu bar. Pin buttons and settings select the quote; unavailable or stale data shows a dash, with dates and source in the tooltip.
 - Persistent favourite currencies, banks and securities, a favourite-bank filter, restored selections and copyable conversion results. Bank pins retain their own operation/channel independently of browsing.
@@ -58,13 +62,13 @@ The securities calculator estimates a scenario, not an order. It omits taxes, di
 
 ## Local storage
 
-`~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings and favourites use macOS UserDefaults (`overviewPreferences`); the original currency and refresh settings migrate on first use. Missing saved instruments and pins are retained as unavailable rather than silently replaced. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU, Finmind, Ipak Yuli Bank, Kapitalbank and Bank.uz. Bank snapshots share the local cache; older cache files without bank data remain readable.
+`~/Library/Application Support/Sumbar/alerts.json` stores alert rules, crossing/delivery state and the observation that triggered an alert. `~/Library/Application Support/Sumbar/cache.json` contains the last successful data and up to seven days of FX observations. Settings and favourites use macOS UserDefaults (`overviewPreferences`); the original currency and refresh settings migrate on first use. Missing saved instruments and pins are retained as unavailable rather than silently replaced. There are no analytics or user accounts. Internet requests expose the usual connection metadata to CBU, Finmind, Ipak Yuli Bank, Kapitalbank and Bank.uz. Bank snapshots share the local cache; older cache files without bank data remain readable.
 
 ## Next work
 
 The [competitor research and improvement plan](COMPETITOR_RESEARCH.md) (Russian, 6 November 2026) compares eight products and defines priorities, acceptance criteria and delivery stages.
 
-The first milestone (stages A+B) is implemented. Next: threshold alerts, bank comparison by UZS budget, Uzbek localization and signed/notarized distribution. Historical conversion, richer securities details, additional direct banks and a local portfolio follow as demand is validated.
+Stages A+B and the alert, UZS-budget and localization work from stage C are implemented. Public Developer ID signing/notarization and a full manual accessibility audit remain. Next product work: historical conversion and richer securities details, followed by additional direct banks and a local portfolio as demand is validated.
 
 ## Contributing
 
@@ -89,3 +93,17 @@ Click the pin beside a currency, bank row or security to show it in the menu bar
 Menu CBU/security checks become stale after two selected refresh intervals. CBU publication dates also need to be valid, not in the future or more than seven calendar days old. Securities show the actual saved session even if it is old, and always label the value as a close. Bank pins use the same source-failure, channel, side and age rules as the comparison. Cached values remain available in the panel when the menu shows a dash. Automatic checks and keyboard access work only while Sumbar runs; there is no monitoring during sleep or after Quit.
 
 The build helper keeps SwiftPM scratch files, caches and compiler temporary files in `temp/`. Existing `.build`, `outputs` and `work` directories from earlier local builds can be moved to `temp/legacy-build`, `temp/outputs` and `temp/work`; moved compiler caches are not reused because their absolute paths may be invalid. The legacy ignore entries remain as a safeguard for direct SwiftPM/Xcode use.
+
+## Exchange alerts in 0.3.0
+
+Open the bell in the header to create a CBU rule, or the bell on a bank row to prefill that bank, operation and channel. Enter a positive UZS-per-unit threshold and choose at-or-above or at-or-below. By default, a rule first observes a value outside the condition, then signals a crossing. “Notify on first match” also allows a rule whose first eligible value already meets the condition. Equal-to-threshold values meet both inclusive comparisons. Pause/resume waits for a new crossing; triggered rules remain consumed after restart.
+
+The notification permission prompt appears only when the user adds a rule or requests a test, never at launch. Delivery requires the built `.app`, permission in macOS and a running, awake Mac. The app does not reconstruct prices missed during sleep. Bank alerts require both a recent check and a known, eligible publication time; aggregate quotes without publication times remain useful for comparison but do not trigger alerts. The interface displays waiting rules when fresh data is missing.
+
+Alert state is written atomically before delivery. A stable notification identifier is checked against pending/delivered notifications; pending events can recover after restart while still fresh. Expired events are marked expired rather than sent with an old quote. Failed delivery has an explicit retry; a corrupt rules file is preserved and never silently overwritten. The operating system controls banner presentation, sound and Focus suppression; the app records successful handoff to macOS, not proof the person saw the banner.
+
+In the Banks screen choose foreign amount or UZS budget (buying)/UZS target (selling). The latter divides the sum by bank sell/buy respectively. Results and differences are estimates rounded for display; fees, availability, limits and branch differences remain excluded.
+
+Settings → Interface language switches RU/UZ without resetting favourites or pins. Translation resources ship inside `Sumbar_Sumbar.bundle`; the app builder copies them alongside the executable. Optional public signing is available with `SUMBAR_SIGN_IDENTITY` set to a valid Developer ID Application identity. Without it, the builder continues to sign ad hoc for local use. This machine has no such Developer ID identity; public signing/notarization was not performed.
+
+Validation covers thresholds, bank side/channel/time rules, denied delivery, pause/resume, persistence, pending-event recovery, failed writes, corrupt storage, UZS calculations and catalogue/format compatibility. The debug renderer includes both languages and the alert screen. Real system notification permission and banner interaction need a desktop check in the built app; tests use a delivery substitute and never request permission or send notifications.

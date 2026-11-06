@@ -51,3 +51,11 @@ Review the currency screen in Light and Dark, securities, settings and a shorter
 The existing SF typography, semantic system surfaces and blue accent extend to favourites and pin actions. Horizontal favourite currency cards scroll when the list exceeds the panel width. Stars mark favourites; pins select a single menu bar quote. The bank filter explicitly limits comparison to favourite banks. Settings use native pickers and retain unavailable saved selections visibly.
 
 Option-Command-S opens or closes the panel globally by default. Settings offer Control-Option-S, Shift-Command-S and Off; conflicts are reported there. Launch at login is an explicit user toggle backed by Service Management. Copy writes the formatted conversion result and currency without reading the clipboard.
+
+## Exchange alerts and language
+
+The header bell opens a focused alert editor. Bank-row bells prefill the selected bank/channel/operation. Native pickers and a labelled positive-threshold field define inclusive conditions; the first-match checkbox explains the initial-state behavior. Rules show active/paused/triggered status and delivery separately. The alert page scrolls while retaining the header and footer. A notification route opens the requested bank with an explicit filter and a way back to all banks.
+
+The UZS budget/target selector retains the customer operation above it. Result captions name whether the user receives currency, pays UZS or needs to sell currency. Differences carry their own unit.
+
+RU/UZ comes from matching string catalogues with interpolation arguments kept separate from translated formats. Underlying selection IDs and parsing labels remain stable. The bank adapter still matches the original source labels. Semantic controls retain keyboard focus and explicit labels for amount, threshold, pin and bell actions; translations are visually checked in both appearances. VoiceOver interaction and real system banners still require manual desktop validation.

@@ -90,16 +90,18 @@ struct DeltaBadge: View {
 
 struct PanelTabs: View {
     @Binding var selection: Int
+    var language = AppLanguage.ru
+    private var tr: L10n { L10n(language: language) }
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var namespace
     var body: some View {
         HStack(spacing: 4) {
-            tab("Валюты", icon: "arrow.left.arrow.right", tag: 0, shortcut: "1")
-            tab("Банки", icon: "building.columns", tag: 1, shortcut: "2")
-            tab("Ценные бумаги", icon: "chart.line.uptrend.xyaxis", tag: 2, shortcut: "3")
+            tab(tr("Валюты"), icon: "arrow.left.arrow.right", tag: 0, shortcut: "1")
+            tab(tr("Банки"), icon: "building.columns", tag: 1, shortcut: "2")
+            tab(tr("Ценные бумаги"), icon: "chart.line.uptrend.xyaxis", tag: 2, shortcut: "3")
         }.padding(5).modifier(ControlGlass())
-            .accessibilityElement(children: .contain).accessibilityLabel("Разделы приложения")
+            .accessibilityElement(children: .contain).accessibilityLabel(tr("Разделы приложения"))
     }
     private func tab(_ name: String, icon: String, tag: Int, shortcut: KeyEquivalent) -> some View {
         Button {
