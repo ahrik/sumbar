@@ -350,3 +350,22 @@
 "Не удалось сохранить историю банков: %@" = "Bank tarixini saqlab bo‘lmadi: %@";
 "Период" = "Davr";
 "Месяц" = "Oy";
+
+/* macOS widgets */
+"Виджеты macOS" = "macOS vidjetlari";
+"Нажмите дату и время в строке меню → «Изменить виджеты» → Sumbar. Или нажмите правой кнопкой на рабочем столе → «Изменить виджеты»." = "Menyu satridagi sana va vaqtni bosing → «Vidjetlarni tahrirlash» → Sumbar. Yoki ish stolida o‘ng tugmani bosing → «Vidjetlarni tahrirlash».";
+"Доступны курс одной валюты и список курсов ЦБ. Размер, валюту и язык можно выбрать в меню виджета. Нажатие на курс открывает его в Sumbar." = "Bitta valyuta kursi va MB kurslari ro‘yxati mavjud. Hajm, valyuta va tilni vidjet menyusida tanlang. Kursni bosish uni Sumbar’da ochadi.";
+"Виджеты обновляются по расписанию macOS независимо от приложения. При сбое сети показаны сохранённые данные с датой проверки." = "Vidjetlar ilovadan mustaqil, macOS jadvali bo‘yicha yangilanadi. Tarmoq xatosida tekshirilgan sana bilan saqlangan ma’lumotlar ko‘rsatiladi.";
+"Виджеты доступны после установки собранного Sumbar.app в «Программы» и первого запуска." = "Vidjetlar yig‘ilgan Sumbar.app’ni «Ilovalar»ga o‘rnatib, birinchi marta ochgandan so‘ng mavjud bo‘ladi.";
+"Настроить курсы" = "Kurslarni sozlash";
+"Выберите валюту и язык виджета Sumbar." = "Sumbar vidjeti valyutasi va tilini tanlang.";
+"ЦБ РУз" = "O‘zR MB";
+"Сохранённые данные" = "Saqlangan ma’lumotlar";
+"Нет данных · проверьте сеть" = "Ma’lumot yo‘q · tarmoqni tekshiring";
+"UZS за единицу" = "Bir birlik uchun UZS";
+"Курс недоступен" = "Kurs mavjud emas";
+"Курс валюты" = "Valyuta kursi";
+"Курсы валют" = "Valyuta kurslari";
+"Официальный курс выбранной валюты к суму и изменение за день." = "Tanlangan valyutaning so‘mga nisbatan rasmiy kursi va kunlik o‘zgarishi.";
+"Четыре или шесть курсов ЦБ. Выбранная валюта — первая в списке." = "MBning to‘rt yoki olti kursi. Tanlangan valyuta ro‘yxatda birinchi.";
+"Сохранено" = "Saqlangan";

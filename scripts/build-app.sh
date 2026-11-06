@@ -28,17 +28,38 @@ cat > "$output_dir/Sumbar.app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>Sumbar</string>
 <key>CFBundleIconFile</key><string>Sumbar</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.5.1</string>
-<key>CFBundleVersion</key><string>8</string>
+<key>CFBundleShortVersionString</key><string>0.6.0</string>
+<key>CFBundleVersion</key><string>9</string>
 <key>CFBundleDevelopmentRegion</key><string>ru</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>LSUIElement</key><true/>
 <key>NSHighResolutionCapable</key><true/>
+<key>CFBundleURLTypes</key><array><dict>
+<key>CFBundleURLName</key><string>uz.sumbar.desktop.currency</string>
+<key>CFBundleURLSchemes</key><array><string>sumbar</string></array>
+</dict></array>
 </dict></plist>
 PLIST
+widget_options=(ONLY_ACTIVE_ARCH=NO)
+if [[ "${SUMBAR_UNIVERSAL:-0}" == "1" ]]; then
+    widget_options+=("ARCHS=arm64 x86_64")
+else
+    widget_options+=("ARCHS=$(uname -m)")
+fi
+version=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$output_dir/Sumbar.app/Contents/Info.plist")
+build_number=$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$output_dir/Sumbar.app/Contents/Info.plist")
+xcodebuild -quiet -project packaging/SumbarWidgets.xcodeproj -scheme SumbarWidgets \
+    -configuration Release -destination 'generic/platform=macOS' -derivedDataPath "$project_dir/temp/widget-build" \
+    CODE_SIGNING_ALLOWED=NO "MARKETING_VERSION=$version" "CURRENT_PROJECT_VERSION=$build_number" "${widget_options[@]}" build
+mkdir -p "$output_dir/Sumbar.app/Contents/PlugIns"
+ditto "$project_dir/temp/widget-build/Build/Products/Release/SumbarWidgets.appex" \
+    "$output_dir/Sumbar.app/Contents/PlugIns/SumbarWidgets.appex"
+widget_path="$output_dir/Sumbar.app/Contents/PlugIns/SumbarWidgets.appex"
 if [[ -n "${SUMBAR_SIGN_IDENTITY:-}" ]]; then
+    codesign --force --options runtime --timestamp --entitlements packaging/Widget.entitlements --sign "$SUMBAR_SIGN_IDENTITY" "$widget_path"
     codesign --force --options runtime --timestamp --sign "$SUMBAR_SIGN_IDENTITY" "$output_dir/Sumbar.app"
 else
+    codesign --force --entitlements packaging/Widget.entitlements --sign - "$widget_path"
     codesign --force --sign - "$output_dir/Sumbar.app"
 fi
 ditto -c -k --sequesterRsrc --keepParent "$output_dir/Sumbar.app" "$output_dir/Sumbar-macOS.zip"

@@ -64,6 +64,12 @@ import Observation
         }
     }
     func applicationWillTerminate(_ notification: Notification) { store.stop(); desktop.stop() }
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let code = urls.compactMap({ WidgetLink.currency(from: $0) }).first else { return }
+        store.selectedCurrency = code
+        store.panelTab = 0
+        showPanel(followPin: false)
+    }
     private func observeStatusItem() {
         withObservationTracking {
             let quote = store.menuBarQuote()

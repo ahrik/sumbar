@@ -4,7 +4,7 @@
 
 ## Подготовка и сборка
 
-Нужен Mac с macOS 14+ и Xcode либо Swift 6 с macOS SDK. Проект использует системные SwiftUI, AppKit и Swift Charts; сторонних пакетов в `Package.swift` нет. Откройте корневой `Package.swift` в Xcode или работайте из терминала:
+Нужен Mac с macOS 14+ и полным Xcode со Swift 6 и macOS SDK для сборки `.app` с WidgetKit. Для тестов основной SwiftPM-программы достаточно совместимого Swift 6 с macOS SDK. Проект использует системные SwiftUI, AppKit и Swift Charts; сторонних пакетов в `Package.swift` нет. Откройте корневой `Package.swift` в Xcode или работайте из терминала:
 
 ```sh
 bash scripts/swift.sh build
@@ -13,6 +13,8 @@ bash scripts/build-app.sh
 ```
 
 Обёртка `scripts/swift.sh` направляет сборку, кэши и временные файлы в игнорируемую папку `temp/`. Собранное приложение и zip находятся в `temp/outputs/`. Старые `.build`, `outputs` и `work` тоже исключены из Git; перемещённые кэши компилятора не переиспользуйте, так как они могут содержать абсолютные пути.
+
+Скрипт сборки использует SwiftPM для основной программы и `packaging/SumbarWidgets.xcodeproj` для расширения WidgetKit с метаданными App Intents. Общие исходники `CurrencyModels.swift`, `CBUProvider.swift`, `HTTPClient.swift` и `WidgetData.swift` компилируются в оба процесса; виджет использует собственный сетевой клиент и кэш в sandbox-контейнере, без App Groups. Расширение подписывается перед основным `.app`, с правами sandbox и исходящих сетевых соединений. Версия и номер сборки расширения берутся из `Info.plist` приложения.
 
 Скрипт сборки создаёт приложение для архитектуры текущего Mac, копирует ресурсы переводов и текст MIT в `Sumbar.app/Contents/Resources/`. По умолчанию применяется подпись ad hoc для локального использования. При наличии Developer ID Application можно указать свою действительную идентичность:
 
@@ -64,6 +66,8 @@ python3 -m http.server 8767 --directory temp/site
 | Расчёты и представления | `Models.swift`, `FXConverterView.swift`, `BankComparisonView.swift`, `SecurityContextView.swift` |
 | Дизайн и локальный рендеринг | `DesignSystem.swift`, `DesignPreview.swift`, [DESIGN.md](DESIGN.md) |
 
+Виджеты находятся в `Sources/SumbarWidgets/`, общие данные и ссылки — в `Sources/Sumbar/WidgetData.swift`. При добавлении общего исходника обновите также список Sources в Xcode-проекте расширения.
+
 Пути в таблице указаны относительно `Sources/Sumbar/`. Проверки находятся в `Tests/SumbarTests/`.
 
 ## Проверки
@@ -78,6 +82,14 @@ python3 scripts/check-launch.py temp/outputs/Sumbar.app --seconds 30
 ```
 
 Последняя команда требует рабочего стола macOS. Она запускает настоящую release-программу обычным способом, с `--preview` и с `--preview --pin-panel`, проверяет размеры видимой панели и устойчивость процессов, затем завершает только свои дочерние процессы.
+
+Для визуальной проверки всех размеров виджетов, обоих языков, светлой/тёмной темы, отсутствующих и сохранённых данных:
+
+```sh
+bash scripts/render-widgets.sh
+```
+
+PNG появятся в `temp/widget-previews/`. Это рендеринг тех же SwiftUI-представлений с синтетическими данными; расписание WidgetKit, добавление в галерею и нажатия нужно дополнительно проверять в macOS на установленной сборке. `scripts/check-distribution.py` проверяет вложенное расширение, обе архитектуры при `--universal`, подпись, sandbox/network entitlements, метаданные App Intents и локализации в `.app`, ZIP и DMG.
 
 Для осознанной проверки реальных сетевых источников:
 

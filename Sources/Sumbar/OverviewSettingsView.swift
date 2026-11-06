@@ -66,6 +66,22 @@ struct OverviewSettingsView: View {
                     .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
         }
+        Surface {
+            VStack(alignment: .leading, spacing: 10) {
+                Label(store.l10n("Виджеты macOS"), systemImage: "rectangle.grid.2x2")
+                    .font(.system(size: 13, weight: .semibold))
+                Text(store.l10n("Нажмите дату и время в строке меню → «Изменить виджеты» → Sumbar. Или нажмите правой кнопкой на рабочем столе → «Изменить виджеты»."))
+                    .font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
+                Text(store.l10n("Доступны курс одной валюты и список курсов ЦБ. Размер, валюту и язык можно выбрать в меню виджета. Нажатие на курс открывает его в Sumbar."))
+                    .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(store.l10n("Виджеты обновляются по расписанию macOS независимо от приложения. При сбое сети показаны сохранённые данные с датой проверки."))
+                    .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                if Bundle.main.bundleURL.pathExtension != "app" {
+                    Text(store.l10n("Виджеты доступны после установки собранного Sumbar.app в «Программы» и первого запуска."))
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+            }
+        }
         if !store.preferences.favoriteCurrencies.isEmpty || !store.preferences.favoriteBanks.isEmpty || !store.preferences.favoriteInstruments.isEmpty {
             DisclosureGroup(store.l10n("Управление избранным")) {
                 VStack(alignment: .leading, spacing: 9) {

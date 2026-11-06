@@ -1,0 +1,37 @@
+// !$*UTF8*$!
+{
+archiveVersion = 1;
+classes = {};
+objectVersion = 56;
+objects = {
+000000000000000000000064 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../Sources/Sumbar/CurrencyModels.swift"; sourceTree = SOURCE_ROOT; };
+0000000000000000000000C8 = {isa = PBXBuildFile; fileRef = 000000000000000000000064; };
+000000000000000000000065 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../Sources/Sumbar/CBUProvider.swift"; sourceTree = SOURCE_ROOT; };
+0000000000000000000000C9 = {isa = PBXBuildFile; fileRef = 000000000000000000000065; };
+000000000000000000000066 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../Sources/Sumbar/HTTPClient.swift"; sourceTree = SOURCE_ROOT; };
+0000000000000000000000CA = {isa = PBXBuildFile; fileRef = 000000000000000000000066; };
+000000000000000000000067 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../Sources/Sumbar/WidgetData.swift"; sourceTree = SOURCE_ROOT; };
+0000000000000000000000CB = {isa = PBXBuildFile; fileRef = 000000000000000000000067; };
+000000000000000000000068 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../Sources/SumbarWidgets/SumbarWidgets.swift"; sourceTree = SOURCE_ROOT; };
+0000000000000000000000CC = {isa = PBXBuildFile; fileRef = 000000000000000000000068; };
+00000000000000000000006E = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = SumbarWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+000000000000000000000078 = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = "../Sources/Sumbar/Resources/ru.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
+000000000000000000000079 = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = uz; path = "../Sources/Sumbar/Resources/uz.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
+000000000000000000000082 = {isa = PBXVariantGroup; children = (000000000000000000000078, 000000000000000000000079); name = Localizable.strings; sourceTree = "<group>"; };
+0000000000000000000000E6 = {isa = PBXBuildFile; fileRef = 000000000000000000000082; };
+00000000000000000000000A = {isa = PBXGroup; children = (000000000000000000000064, 000000000000000000000065, 000000000000000000000066, 000000000000000000000067, 000000000000000000000068, 000000000000000000000082, 00000000000000000000000B); sourceTree = "<group>"; };
+00000000000000000000000B = {isa = PBXGroup; children = (00000000000000000000006E); name = Products; sourceTree = "<group>"; };
+000000000000000000000014 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (0000000000000000000000C8, 0000000000000000000000C9, 0000000000000000000000CA, 0000000000000000000000CB, 0000000000000000000000CC); runOnlyForDeploymentPostprocessing = 0; };
+000000000000000000000015 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (0000000000000000000000E6); runOnlyForDeploymentPostprocessing = 0; };
+000000000000000000000016 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+00000000000000000000001E = {isa = PBXNativeTarget; buildConfigurationList = 000000000000000000000029; buildPhases = (000000000000000000000014, 000000000000000000000016, 000000000000000000000015); buildRules = (); dependencies = (); name = SumbarWidgets; productName = SumbarWidgets; productReference = 00000000000000000000006E; productType = "com.apple.product-type.app-extension"; };
+000000000000000000000032 = {isa = XCBuildConfiguration; name = Debug; buildSettings = { APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_ENTITLEMENTS = Widget.entitlements; CODE_SIGN_STYLE = Manual; COMBINE_HIDPI_IMAGES = YES; ENABLE_APP_SANDBOX = YES; ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = WidgetInfo.plist; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks"; MACOSX_DEPLOYMENT_TARGET = 14.0; MARKETING_VERSION = 0.6.0; CURRENT_PROJECT_VERSION = 9; PRODUCT_BUNDLE_IDENTIFIER = uz.sumbar.desktop.widgets; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = macosx; SKIP_INSTALL = YES; SWIFT_VERSION = 6.0; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; DEBUG_INFORMATION_FORMAT = dwarf; }; };
+00000000000000000000003C = {isa = XCBuildConfiguration; name = Debug; buildSettings = { CLANG_ENABLE_MODULES = YES; }; };
+000000000000000000000033 = {isa = XCBuildConfiguration; name = Release; buildSettings = { APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_ENTITLEMENTS = Widget.entitlements; CODE_SIGN_STYLE = Manual; COMBINE_HIDPI_IMAGES = YES; ENABLE_APP_SANDBOX = YES; ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = WidgetInfo.plist; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks"; MACOSX_DEPLOYMENT_TARGET = 14.0; MARKETING_VERSION = 0.6.0; CURRENT_PROJECT_VERSION = 9; PRODUCT_BUNDLE_IDENTIFIER = uz.sumbar.desktop.widgets; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = macosx; SKIP_INSTALL = YES; SWIFT_VERSION = 6.0; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_OPTIMIZATION_LEVEL = "-O"; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; }; };
+00000000000000000000003D = {isa = XCBuildConfiguration; name = Release; buildSettings = { CLANG_ENABLE_MODULES = YES; }; };
+000000000000000000000028 = {isa = XCConfigurationList; buildConfigurations = (00000000000000000000003C, 00000000000000000000003D); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+000000000000000000000029 = {isa = XCConfigurationList; buildConfigurations = (000000000000000000000032, 000000000000000000000033); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+000000000000000000000001 = {isa = PBXProject; attributes = { LastUpgradeCheck = 1600; }; buildConfigurationList = 000000000000000000000028; compatibilityVersion = "Xcode 14.0"; developmentRegion = ru; hasScannedForEncodings = 0; knownRegions = (ru, uz, Base); mainGroup = 00000000000000000000000A; productRefGroup = 00000000000000000000000B; projectDirPath = ""; projectRoot = ""; targets = (00000000000000000000001E); };
+};
+rootObject = 000000000000000000000001;
+}
