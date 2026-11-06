@@ -1,5 +1,7 @@
 # Commercial bank rates
 
+User-facing source terms and limitations: [Источники данных](docs/DATA_SOURCES.md). Usage: [Руководство пользователя](docs/USER_GUIDE.md).
+
 The application retrieves public pages for personal comparison. It does not proxy or redistribute a shared feed. No actual quotes or downloaded HTML are committed. Code licensing does not change the sources' data terms.
 
 ## Providers

@@ -9,6 +9,7 @@ binary_dir="$(bash scripts/swift.sh build -c release --show-bin-path)"
 cp "$binary_dir/Sumbar" "$output_dir/Sumbar.app/Contents/MacOS/Sumbar"
 mkdir -p "$output_dir/Sumbar.app/Contents/Resources"
 ditto "$binary_dir/Sumbar_Sumbar.bundle" "$output_dir/Sumbar.app/Contents/Resources/Sumbar_Sumbar.bundle"
+cp "$project_dir/LICENSE" "$output_dir/Sumbar.app/Contents/Resources/LICENSE"
 cat > "$output_dir/Sumbar.app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
