@@ -83,12 +83,12 @@ final class BankHistoryTests: XCTestCase {
         XCTAssertEqual(store.bankHistory.series.count, 1)
         let id = store.bankHistory.series.keys.first!
         XCTAssertEqual(store.bankHistory.observations(for: id, days: 7, ending: store.now).count, 1)
-        XCTAssertEqual(store.bankErrors.count, 2)
+        XCTAssertEqual(store.bankErrors.count, BankProviders.sources.count - 1)
         await store.refreshBanks()
         XCTAssertEqual(store.bankHistory.series.values.first?.observations.count, 1)
         await loader.fail()
         await store.refreshBanks()
-        XCTAssertEqual(store.bankErrors.count, 3)
+        XCTAssertEqual(store.bankErrors.count, BankProviders.sources.count)
         XCTAssertEqual(store.bankHistory.series.values.first?.observations.count, 1)
     }
 }

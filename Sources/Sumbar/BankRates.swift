@@ -83,14 +83,16 @@ enum BankComparison {
 enum BankProviders {
     struct Source: Sendable {
         let id: String; let name: String; let url: String
+        var requestURL: String? = nil
     }
     static let sources = [
         Source(id: "ipak", name: "Ipak Yuli Bank", url: "https://ru.ipakyulibank.uz/physical/obmen-valyut"),
         Source(id: "kapital", name: "Kapitalbank", url: "https://www.kapitalbank.uz/ru/services/exchange-rates-new/"),
-        Source(id: "bankuz", name: "Bank.uz", url: "https://bank.uz/currency")
+        Source(id: "bankuz", name: "Bank.uz", url: "https://bank.uz/currency"),
+        Source(id: "hamkor", name: "Hamkorbank", url: "https://hamkorbank.uz/exchange-rate/", requestURL: "https://api-dbo.hamkorbank.uz/webflow/v1/exchanges")
     ]
     static func load(_ source: Source) async throws -> [BankQuote] {
-        let data = try await Providers.data(URL(string: source.url)!)
+        let data = try await Providers.data(URL(string: source.requestURL ?? source.url)!)
         guard let html = String(data: data, encoding: .utf8) else { throw MarketError.invalidData }
         return try decode(html, provider: source.id)
     }
@@ -118,6 +120,7 @@ enum BankProviders {
     private static func validPrice(_ value: Any?) -> Decimal? { Providers.decimal(value).flatMap { $0 > 0 ? $0 : nil } }
     private static func bankID(_ slug: String) -> String {
         if slug == "kapitalbank" { return "kapital" }
+        if ["hamkorbank", "hamkor-bank", "hamkor"].contains(slug) { return "hamkorbank" }
         if ["ipak-yuli-bank", "ipak-yuli", "ipakyuli", "ipakyulibank"].contains(slug) { return "ipak" }
         return slug
     }
@@ -127,6 +130,7 @@ enum BankProviders {
         case "ipak": quotes = try decodeIpak(html, at: now)
         case "kapital": quotes = try decodeKapital(html, at: now)
         case "bankuz": quotes = decodeBankUZ(html, at: now)
+        case "hamkor": quotes = try decodeHamkor(Data(html.utf8), at: now)
         default: throw MarketError.invalidData
         }
         guard !quotes.isEmpty, quotes.contains(where: { $0.currency == "USD" }) else { throw MarketError.invalidData }
