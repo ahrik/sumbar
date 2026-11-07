@@ -1,5 +1,21 @@
 import AppKit
 
+let project = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+let brandURL = project.appendingPathComponent("Sources/Sumbar/Resources/SumbarMark.pdf")
+guard let brand = NSImage(contentsOf: brandURL) else { fatalError("Missing SumbarMark.pdf; run scripts/brand-assets.swift") }
+
+func drawBrand(in rect: NSRect, ink: NSColor) {
+    guard let context = NSGraphicsContext.current?.cgContext else { return }
+    context.saveGState()
+    context.clip(to: rect)
+    context.beginTransparencyLayer(auxiliaryInfo: nil)
+    brand.draw(in: rect)
+    ink.setFill()
+    rect.fill(using: .sourceIn)
+    context.endTransparencyLayer()
+    context.restoreGState()
+}
+
 let output = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
 try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
 
@@ -29,7 +45,8 @@ func label(_ text: String, x: CGFloat, y: CGFloat, size: CGFloat, weight: NSFont
 try png("dmg-background.png", width: 640, height: 420, scale: 2) {
     color(244, 247, 253).setFill()
     NSRect(x: 0, y: 0, width: 640, height: 420).fill()
-    label("Sumbar", x: 48, y: 337, size: 34, weight: .semibold, ink: color(25, 40, 65))
+    drawBrand(in: NSRect(x: 48, y: 337, width: 36, height: 36), ink: color(36, 103, 231))
+    label("Sumbar", x: 96, y: 337, size: 34, weight: .semibold, ink: color(25, 40, 65))
     label("Перетащите Sumbar в «Программы»", x: 49, y: 302, size: 16, ink: color(75, 92, 116))
     color(224, 233, 250).setFill()
     for x in [CGFloat(96), CGFloat(416)] {
@@ -52,20 +69,9 @@ for points in [16, 32, 128, 256, 512] {
         try png("Sumbar.iconset/" + filename, width: points, height: points, scale: scale) {
             let t = AffineTransform(scale: CGFloat(points) / 1024)
             (t as NSAffineTransform).concat()
-            color(36, 103, 231).setFill()
+            color(244, 247, 253).setFill()
             NSBezierPath(roundedRect: NSRect(x: 80, y: 80, width: 864, height: 864), xRadius: 210, yRadius: 210).fill()
-            NSColor.white.withAlphaComponent(0.24).setStroke()
-            let baseline = NSBezierPath()
-            baseline.lineWidth = 18; baseline.lineCapStyle = .round
-            baseline.move(to: NSPoint(x: 250, y: 290)); baseline.line(to: NSPoint(x: 250, y: 740))
-            baseline.move(to: NSPoint(x: 250, y: 290)); baseline.line(to: NSPoint(x: 790, y: 290)); baseline.stroke()
-            NSColor.white.setStroke()
-            let chart = NSBezierPath()
-            chart.lineWidth = 52; chart.lineCapStyle = .round; chart.lineJoinStyle = .round
-            chart.move(to: NSPoint(x: 285, y: 395)); chart.line(to: NSPoint(x: 425, y: 545))
-            chart.line(to: NSPoint(x: 555, y: 475)); chart.line(to: NSPoint(x: 755, y: 695)); chart.stroke()
-            NSColor.white.setFill()
-            NSBezierPath(ovalIn: NSRect(x: 712, y: 652, width: 86, height: 86)).fill()
+            drawBrand(in: NSRect(x: 224, y: 224, width: 576, height: 576), ink: color(36, 103, 231))
         }
     }
 }

@@ -26,6 +26,7 @@ PAGES = [
     ('CONTRIBUTING.md', 'contributing.html', 'Разработчикам'),
     ('LICENSE', 'license.html', 'Лицензия MIT'),
     ('README.md', 'readme.html', 'О проекте'),
+    ('docs/BRANDING.md', 'branding.html', 'Логотип'),
     ('BANK_SOURCES.md', 'banks.html', 'Банковские адаптеры'),
     ('DESIGN.md', 'design.html', 'Интерфейс'),
     ('COMPETITOR_RESEARCH.md', 'research.html', 'План развития'),
@@ -42,6 +43,8 @@ def rewrite_links(content, source):
         path = (source.parent / parts.path).resolve()
         if path in DESTINATIONS:
             target = urlunsplit(('', '', DESTINATIONS[path], parts.query, parts.fragment))
+        elif path.is_relative_to(ROOT / 'branding') and path.is_file():
+            target = urlunsplit(('', '', 'assets/branding/' + path.relative_to(ROOT / 'branding').as_posix(), parts.query, parts.fragment))
         elif path.is_relative_to(ROOT) and path.exists() and not path.is_relative_to(ROOT / 'web'):
             target = f'{REPOSITORY}/blob/{SOURCE_REF}/{path.relative_to(ROOT).as_posix()}'
         else:
@@ -71,6 +74,7 @@ if OUTPUT.exists():
     shutil.rmtree(OUTPUT)
 OUTPUT.mkdir(parents=True)
 shutil.copytree(ROOT / 'web' / 'assets', OUTPUT / 'assets')
+shutil.copytree(ROOT / 'branding', OUTPUT / 'assets' / 'branding')
 index = []
 for source_name, filename, title in PAGES:
     source = ROOT / source_name
@@ -89,7 +93,7 @@ for source_name, filename, title in PAGES:
 <link rel="icon" href="assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/style.css">
 <script src="assets/site.js" defer></script></head><body>
 <a class="skip" href="#content">Перейти к содержимому</a>
-<header class="topbar"><a class="brand" href="index.html"><img src="assets/mark.svg" alt="" width="37" height="37">Sumbar<span>Документация</span></a>
+<header class="topbar"><a class="brand" href="index.html"><img src="assets/branding/sumbar-logo.svg" alt="Sumbar" width="154" height="42"><span>Документация</span></a>
 <nav class="toplinks" aria-label="Ссылки проекта"><a href="{REPOSITORY}">GitHub</a><a class="download" href="{REPOSITORY}/releases/latest/download/Sumbar.dmg">Скачать для Mac</a><button class="menu-button" type="button" aria-controls="sidebar" aria-expanded="false">Меню</button></nav></header>
 <div class="layout"><aside class="sidebar" id="sidebar"><label class="search-label" for="search">Поиск по документации</label><input class="search" id="search" type="search" placeholder="Например, уведомления" autocomplete="off"><nav class="pages" aria-label="Разделы документации">{navigation(filename)}</nav><p class="sidebar-note">macOS 14 и новее<br>Русский и узбекский интерфейс<br>Бесплатно, с открытым кодом</p></aside>
 <main id="content"><div class="article"><section class="search-results" aria-label="Результаты поиска" aria-live="polite" hidden></section><article>{content}</article>

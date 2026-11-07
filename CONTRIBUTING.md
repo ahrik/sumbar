@@ -54,6 +54,8 @@ python3 -m http.server 8767 --directory temp/site
 
 ## Устройство проекта
 
+Логотипы SVG хранятся в `branding/`, нативный знак — в `Sources/Sumbar/Resources/SumbarMark.pdf`. Их общий мастер — `scripts/brand-assets.swift`; после изменения геометрии запустите его и сохраните результаты в Git. Подробности и варианты фона — в [руководстве по логотипу](docs/BRANDING.md).
+
 | Область | Файлы |
 | --- | --- |
 | Запуск, строка меню, панель и окно | `App.swift`, `DesktopControls.swift`, `PanelView.swift` |

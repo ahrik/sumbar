@@ -15,7 +15,8 @@ import Observation
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "chart.xyaxis.line", accessibilityDescription: store.l10n("Sumbar — финансы Узбекистана"))
+            button.image = SumbarBrand.image(size: 18)
+            button.image?.accessibilityDescription = store.l10n("Sumbar — финансы Узбекистана")
             button.target = self; button.action = #selector(togglePanel)
         }
         let height = min(CGFloat(760), (NSScreen.main?.visibleFrame.height ?? 820) - 40)
