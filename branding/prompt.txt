@@ -1,0 +1,10 @@
+Use case: logo-brand
+Asset type: production logo for Sumbar, a free native macOS menu-bar app for Uzbek som exchange rates and bank comparison.
+Primary request: Design one exceptionally clean and distinctive logo consisting of an abstract S symbol and the wordmark "Sumbar".
+Subject: A compact geometric S made from two confident interlocking ribbon-like flat shapes, with subtle opposing flow suggesting currency exchange. The S must read instantly, with beautifully balanced negative space and precise optical alignment. No literal dollar signs, coins, flags, or stock-chart arrows.
+Style/medium: flat vector-style identity, sober, modern, precise, friendly, crisp hard edges with subtly softened corners, no texture.
+Composition/framing: a single horizontal logo lockup, symbol on the left and wordmark on the right, generous clear transparent space around all sides. Large enough to judge the symbol and lettering. Exactly one design, no mockups or presentation board.
+Color palette: solid financial blue #2467E7 for the symbol; dark navy #182842 for the wordmark. Flat solid colors, no gradients, no shadows.
+Text (verbatim): "Sumbar" — uppercase S, lowercase u m b a r. Carefully kerned modern sans-serif with a clean human character, medium-to-semibold weight. No tagline or other text.
+Scene/backdrop: genuinely transparent background.
+Constraints: original simple scalable brand mark, legible at small sizes, no bounding app tile, no decoration, no watermark. Do not include any prose, labels, guides, or color swatches.
