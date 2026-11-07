@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import subprocess
 from html.parser import HTMLParser
 from urllib.parse import urlsplit, urlunsplit
 
@@ -15,11 +16,17 @@ ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / 'temp' / 'site'
 BASE_URL = 'https://ahrik.github.io/sumbar/'
 REPOSITORY = 'https://github.com/ahrik/sumbar'
-SOURCE_REF = os.environ.get('SUMBAR_SOURCE_REF', 'v0.5.1')
+SOURCE_REF = os.environ.get('SUMBAR_SOURCE_REF')
+if not SOURCE_REF:
+    try:
+        SOURCE_REF = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True, stderr=subprocess.DEVNULL).strip()
+    except (OSError, subprocess.CalledProcessError):
+        SOURCE_REF = 'main'
 PAGES = [
     ('web/index.md', 'index.html', 'Начало'),
     ('docs/INSTALLATION.md', 'installation.html', 'Установка'),
     ('docs/USER_GUIDE.md', 'guide.html', 'Руководство'),
+    ('docs/WIDGETS.md', 'widgets.html', 'Виджеты macOS'),
     ('docs/DATA_SOURCES.md', 'sources.html', 'Источники данных'),
     ('docs/PRIVACY.md', 'privacy.html', 'Конфиденциальность'),
     ('CHANGELOG.md', 'changelog.html', 'История версий'),
@@ -42,6 +49,8 @@ def rewrite_links(content, source):
         path = (source.parent / parts.path).resolve()
         if path in DESTINATIONS:
             target = urlunsplit(('', '', DESTINATIONS[path], parts.query, parts.fragment))
+        elif path.is_relative_to(ROOT / 'web' / 'assets') and path.is_file():
+            target = urlunsplit(('', '', 'assets/' + path.relative_to(ROOT / 'web' / 'assets').as_posix(), parts.query, parts.fragment))
         elif path.is_relative_to(ROOT) and path.exists() and not path.is_relative_to(ROOT / 'web'):
             target = f'{REPOSITORY}/blob/{SOURCE_REF}/{path.relative_to(ROOT).as_posix()}'
         else:
@@ -64,7 +73,7 @@ def navigation(current):
         _, filename, label = page
         selected = ' aria-current="page"' if filename == current else ''
         return f'<a href="{filename}"{selected}>{label}</a>'
-    return ''.join(link(page) for page in PAGES[:8]) + '<details><summary>О проекте подробнее</summary>' + ''.join(link(page) for page in PAGES[8:]) + '</details>'
+    return ''.join(link(page) for page in PAGES[:9]) + '<details><summary>О проекте подробнее</summary>' + ''.join(link(page) for page in PAGES[9:]) + '</details>'
 
 
 if OUTPUT.exists():

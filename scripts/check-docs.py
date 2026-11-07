@@ -41,4 +41,11 @@ assert len(search) == len(pages) >= 10
 assert any('уведомления' in item['text'].lower() for item in search)
 assert all((root / item['url']).exists() for item in search)
 assert 'releases/latest/download/Sumbar.dmg' in (root / 'index.html').read_text()
+widget_page = root / 'widgets.html'
+assert widget_page in pages, 'Missing widget guide'
+assert any(item['url'] == 'widgets.html' and 'виджет' in item['text'].lower() for item in search)
+widget_images = [link for link in pages[widget_page].links if link.startswith('assets/widgets/')]
+assert len(widget_images) == 3, 'Missing local widget examples'
+assert all((root / link).is_file() for link in widget_images)
+assert all('widgets.html' in parser.links for parser in pages.values()), 'Widget guide missing from navigation'
 print(f'Checked {len(pages)} pages, {count} local links/assets/fragments, and full-text search data.')

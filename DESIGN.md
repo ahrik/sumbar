@@ -72,3 +72,11 @@ Security context uses quiet source-labelled rows for session metrics and bond fi
 ## Bank observation history
 
 The clock action on each bank row opens a focused history sheet with bank/currency/channel identity, a source selector, week/month periods, two bank-side point series and the last numeric observation. No connecting line spans intervals without checks. Both source publication and local observation time are shown separately; Bank.uz’s missing publication time remains explicit. Empty history explains that collection starts with successful updates. Storage errors appear both beside the bank list and inside the sheet. RU/UZ use the existing catalogues.
+
+## macOS widgets
+
+WidgetKit provides a small/medium single-currency card and a medium/large rates list. The system owns placement, margins, background treatment and appearance. Cards use the existing SF typography, rounded primary figures, monospaced digits and blue accent. The small card abbreviates the saved-state caption to fit its width. Publication dates and the successful check time remain separate.
+
+Each instance selects its currency and language through App Intents. A single card opens its selected currency; list rows open their respective currencies. These routes preserve the menu-bar pin. Live entries use fetched or cached data; gallery fixtures remain confined to previews.
+
+Run `bash scripts/render-widgets.sh` to render all sizes, RU/UZ, light/dark and missing/saved states into `temp/widget-previews/`. Documentation examples in `web/assets/widgets/` come from this renderer and are labelled as demonstration values in the [widget guide](docs/WIDGETS.md). After visual changes, refresh the examples and run the documentation checks. Actual gallery placement, widget editing and system scheduling require a desktop check with an installed `.app`.
