@@ -4,6 +4,12 @@
 
 A compact native financial instrument for the macOS menu bar. Let the current quote, its source date and the chart lead; navigation stays visually distinct from financial content. The panel uses a restrained blue accent, SF system typography and native AppKit materials.
 
+## Brand
+
+Sumbar uses an S made from two opposing ribbons to suggest currency exchange. The mark uses #2467E7; the full wordmark uses #182842 on light backgrounds and #F5F8FE on dark backgrounds. The menu bar uses a monochrome template image, the panel uses its semantic blue, and the app icon places the blue mark on a light rounded tile. SVG lettering is outlined, so it does not depend on installed fonts.
+
+The single geometry master in `scripts/brand-assets.swift` generates the SVG files in `branding/`, the website favicon and the native vector PDF in `Sources/Sumbar/Resources/`. Packaging renders that PDF at each icon size. See the [logo guide](docs/BRANDING.md) for files and usage.
+
 ## Apple guidance reviewed
 
 - [Designing for macOS](https://developer.apple.com/design/human-interface-guidelines/designing-for-macos): precise pointer controls, keyboard shortcuts and appropriate information density.

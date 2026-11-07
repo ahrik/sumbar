@@ -61,7 +61,8 @@ struct PanelView: View {
         HStack(spacing: 11) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12).fill(SumbarDesign.blue.opacity(0.12))
-                Image(systemName: "chart.xyaxis.line").font(.system(size: 21, weight: .semibold)).foregroundStyle(SumbarDesign.blue)
+                Image(nsImage: SumbarBrand.image(size: 24)).renderingMode(.template)
+                    .resizable().scaledToFit().frame(width: 24, height: 24).foregroundStyle(SumbarDesign.blue)
             }.frame(width: 42, height: 42).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
                 Text(tab == 3 ? store.l10n("Настройки") : tab == 4 ? store.l10n("Уведомления") : "Sumbar").font(.system(size: 19, weight: .semibold))
